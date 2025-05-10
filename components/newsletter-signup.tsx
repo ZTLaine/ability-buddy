@@ -1,0 +1,74 @@
+"use client"
+
+import type React from "react"
+
+import { useState } from "react"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { z } from "zod"
+
+const emailSchema = z.string().email("Please enter a valid email address")
+
+export function NewsletterSignup() {
+  const [email, setEmail] = useState("")
+  const [error, setError] = useState("")
+  const [success, setSuccess] = useState(false)
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault()
+    setError("")
+
+    try {
+      emailSchema.parse(email)
+      // Here you would typically send the email to your API
+      console.log("Subscribing email:", email)
+      setSuccess(true)
+      setEmail("")
+    } catch (err) {
+      if (err instanceof z.ZodError) {
+        setError(err.errors[0].message)
+      } else {
+        setError("An error occurred. Please try again.")
+      }
+    }
+  }
+
+  if (success) {
+    return (
+      <div className="bg-[#4CAF50]/10 p-4 rounded-lg text-[#00796B]">
+        <p className="font-medium">Thank you for subscribing!</p>
+        <p className="text-sm mt-1">We'll send you updates about new resources.</p>
+      </div>
+    )
+  }
+
+  return (
+    <form onSubmit={handleSubmit} className="space-y-4">
+      <div>
+        <div className="flex gap-2">
+          <Input
+            type="email"
+            placeholder="Your email address"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            className="bg-white border-[#B39DDB] focus:border-[#4CAF50] transition-all duration-300"
+            aria-label="Email address for newsletter"
+            aria-describedby={error ? "email-error" : undefined}
+          />
+          <Button
+            type="submit"
+            className="bg-[#4CAF50] hover:bg-[#4CAF50]/90 hover:shadow-lg hover:translate-y-[-2px] transition-all duration-300 text-white"
+          >
+            Subscribe
+          </Button>
+        </div>
+        {error && (
+          <p id="email-error" className="text-red-500 text-sm mt-1">
+            {error}
+          </p>
+        )}
+      </div>
+      <p className="text-sm text-[#00796B]/80">We respect your privacy. Unsubscribe at any time.</p>
+    </form>
+  )
+}

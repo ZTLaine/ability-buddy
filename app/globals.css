@@ -1,0 +1,167 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --primary: #4caf50;
+  --secondary: #b39ddb;
+  --background: #fffde7;
+  --foreground: #00796b;
+  --accent: #03a9f4;
+  --highlight: #ffc107;
+}
+
+/* High contrast mode styles */
+.high-contrast {
+  --primary: #008000;
+  --secondary: #6200ea;
+  --background: #ffffff;
+  --foreground: #000000;
+  --accent: #0000ff;
+  --highlight: #ffff00;
+}
+
+.high-contrast body {
+  background-color: #ffffff !important;
+  color: #000000 !important;
+}
+
+.high-contrast header {
+  background-color: #ffffff !important;
+  border-bottom: 2px solid #000000 !important;
+}
+
+.high-contrast .bg-\[\#FFFDE7\] {
+  background-color: #ffffff !important;
+}
+
+.high-contrast .text-\[\#00796B\] {
+  color: #000000 !important;
+}
+
+.high-contrast .bg-\[\#4CAF50\] {
+  background-color: #008000 !important;
+}
+
+.high-contrast .text-\[\#4CAF50\] {
+  color: #008000 !important;
+}
+
+.high-contrast .border-\[\#B39DDB\] {
+  border-color: #6200ea !important;
+}
+
+.high-contrast .bg-\[\#03A9F4\]\/10 {
+  background-color: #e6f7ff !important;
+}
+
+.high-contrast .bg-\[\#4CAF50\]\/10 {
+  background-color: #e6ffe6 !important;
+}
+
+.high-contrast .bg-\[\#00796B\] {
+  background-color: #000000 !important;
+}
+
+.high-contrast a,
+.high-contrast button {
+  outline: 2px solid transparent;
+}
+
+.high-contrast a:focus,
+.high-contrast button:focus {
+  outline: 3px solid #ffff00;
+  outline-offset: 2px;
+}
+
+/* Button hover effects */
+button {
+  transition: all 0.3s ease;
+}
+
+.bg-\[\#4CAF50\]:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.border-\[\#B39DDB\]:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Leaf pattern background */
+.leaf-pattern {
+  background-color: var(--background);
+  background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M30 0C13.4 0 0 13.4 0 30s13.4 30 30 30 30-13.4 30-30S46.6 0 30 0zm0 0' fill='%234CAF50' fill-opacity='0.05'/%3E%3C/svg%3E");
+}
+
+/* Accessibility improvements */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
+
+/* Focus styles */
+*:focus-visible {
+  outline: 2px solid var(--highlight);
+  outline-offset: 2px;
+}
+
+/* Add smooth scrolling for a better user experience */
+html {
+  scroll-behavior: smooth;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+}
+
+/* Dialog/Modal styling */
+[data-radix-popper-content-wrapper] {
+  z-index: 100 !important;
+}
+
+.high-contrast [role="dialog"] {
+  border: 2px solid #000000 !important;
+  background-color: #ffffff !important;
+}
+
+.high-contrast [role="dialog"] * {
+  color: #000000 !important;
+}
+
+.high-contrast [role="dialog"] button {
+  border: 1px solid #000000 !important;
+}
+
+.high-contrast [role="dialog"] button[type="submit"] {
+  background-color: #008000 !important;
+  color: #ffffff !important;
+}
+
+/* Ensure dialog overlay has proper contrast */
+[data-radix-dialog-overlay] {
+  background-color: rgba(0, 0, 0, 0.4) !important;
+}
+
+.high-contrast [data-radix-dialog-overlay] {
+  background-color: rgba(0, 0, 0, 0.7) !important;
+}
