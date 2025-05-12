@@ -3,32 +3,32 @@
 import React, { useState, useEffect } from "react";
 import { ResourceList } from "./resource-list";
 import { ResourceFilterSidebar } from "./resource-filter-sidebar";
-import { mockResources, MockResource } from "@/lib/mock-data";
-
-// This interface can be shared or moved to a types file later
-export interface SelectedFilters {
-  category: string[];
-  bodySystem: string[];
-}
-
-export type FilterLogic = "AND" | "OR";
+import { mockResources, masterBodySystems } from "@/lib/mock-data";
+import { MockResource, SelectedFilters, FilterSettings } from "@/types/resources";
 
 // Helper to get unique tags from mock data - can also be moved to a shared utils file
-const getUniqueTags = (key: keyof Pick<MockResource, "category" | "bodySystem">) => {
-  const allTags = mockResources.map(resource => resource[key]);
+const getUniqueTags = (key: "bodySystems" | "tags") => {
+  const allTags = mockResources.flatMap(resource => resource[key]);
   return Array.from(new Set(allTags)).sort() as string[];
 };
 
 export function ResourcesPageLayout() {
   const [selectedFilters, setSelectedFilters] = useState<SelectedFilters>({
-    category: [],
-    bodySystem: [],
+    bodySystems: [],
+    tags: [],
   });
-  const [filterLogic, setFilterLogic] = useState<FilterLogic>("AND");
+  
+  const [filterSettings, setFilterSettings] = useState<FilterSettings>({
+    bodySystemsLogic: "AND",
+    tagsLogic: "AND",
+  });
+  
   const [filteredResources, setFilteredResources] = useState<MockResource[]>(mockResources);
 
-  const uniqueCategories = getUniqueTags("category");
-  const uniqueBodySystems = getUniqueTags("bodySystem");
+  // Use masterBodySystems for body systems (fixed list)
+  const uniqueBodySystems = masterBodySystems;
+  // Get unique tags from all resources
+  const uniqueTags = getUniqueTags("tags");
 
   const handleTagClick = (type: keyof SelectedFilters, tag: string) => {
     setSelectedFilters(prevFilters => {
@@ -46,59 +46,78 @@ export function ResourcesPageLayout() {
       }
     });
   };
-  
-  // Refined useEffect for filtering
+
+  const handleFilterLogicChange = (type: keyof FilterSettings, value: "AND" | "OR") => {
+    setFilterSettings(prevSettings => ({
+      ...prevSettings,
+      [type]: value,
+    }));
+  };
+
+  // Updated filtering logic for arrays of bodySystems and tags
   useEffect(() => {
-    const { category: selCategory, bodySystem: selBodySystem } = selectedFilters;
+    const { bodySystems: selBodySystems, tags: selTags } = selectedFilters;
+    const { bodySystemsLogic, tagsLogic } = filterSettings;
 
     // If no filters are selected at all, show all resources
-    if (selCategory.length === 0 && selBodySystem.length === 0) {
+    if (selBodySystems.length === 0 && selTags.length === 0) {
       setFilteredResources(mockResources);
       return;
     }
 
     const newFilteredResources = mockResources.filter(resource => {
-      if (filterLogic === "AND") {
-        // For AND logic, resource must match selections in all active groups.
-        // If a group has no selections, it doesn't filter (evaluates to true for that group).
-        const categoryCheck = selCategory.length === 0 || selCategory.includes(resource.category);
-        const bodySystemCheck = selBodySystem.length === 0 || selBodySystem.includes(resource.bodySystem);
-        return categoryCheck && bodySystemCheck;
-      } else { // OR logic
-        // For OR logic, resource must match selections in at least one active group.
-        let matchesOrCriteria = false;
-        // Check category match only if categories are selected
-        if (selCategory.length > 0 && selCategory.includes(resource.category)) {
-          matchesOrCriteria = true;
+      // Check body systems match based on AND/OR logic
+      let bodySystemsMatch = true;
+      if (selBodySystems.length > 0) {
+        if (bodySystemsLogic === "AND") {
+          // Resource must have ALL selected body systems
+          bodySystemsMatch = selBodySystems.every(system => 
+            resource.bodySystems.includes(system)
+          );
+        } else { // OR logic
+          // Resource must have AT LEAST ONE of the selected body systems
+          bodySystemsMatch = selBodySystems.some(system => 
+            resource.bodySystems.includes(system)
+          );
         }
-        // Check body system match only if body systems are selected and not already matched by category
-        if (!matchesOrCriteria && selBodySystem.length > 0 && selBodySystem.includes(resource.bodySystem)) {
-          matchesOrCriteria = true;
-        }
-        return matchesOrCriteria;
       }
+
+      // Check tags match based on AND/OR logic
+      let tagsMatch = true;
+      if (selTags.length > 0) {
+        if (tagsLogic === "AND") {
+          // Resource must have ALL selected tags
+          tagsMatch = selTags.every(tag => 
+            resource.tags.includes(tag)
+          );
+        } else { // OR logic
+          // Resource must have AT LEAST ONE of the selected tags
+          tagsMatch = selTags.some(tag => 
+            resource.tags.includes(tag)
+          );
+        }
+      }
+
+      // Resource matches if it passes both the body systems and tags filters
+      return bodySystemsMatch && tagsMatch;
     });
+    
     setFilteredResources(newFilteredResources);
-
-  }, [selectedFilters, filterLogic]);
-
+  }, [selectedFilters, filterSettings]);
 
   return (
     <div className="flex flex-col lg:flex-row gap-8">
-      {/* Main content area for resource list */}
       <div className="lg:w-3/4">
         <ResourceList resources={filteredResources} />
       </div>
-
-      {/* Sidebar for filters */}
       <aside className="lg:w-1/4">
         <ResourceFilterSidebar 
           selectedFilters={selectedFilters}
           onTagClick={handleTagClick}
-          uniqueCategories={uniqueCategories}
           uniqueBodySystems={uniqueBodySystems}
-          filterLogic={filterLogic}
-          onFilterLogicChange={setFilterLogic}
+          uniqueTags={uniqueTags}
+          filterSettings={filterSettings}
+          onFilterLogicChange={handleFilterLogicChange}
         />
       </aside>
     </div>

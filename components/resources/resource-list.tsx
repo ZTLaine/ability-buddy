@@ -1,6 +1,6 @@
 import React from "react";
 import { ResourceCard } from "@/components/resource-card";
-import { mockResources, MockResource } from "@/lib/mock-data";
+import { MockResource } from "@/types/resources";
 
 interface ResourceListProps {
   resources: MockResource[];
@@ -22,8 +22,8 @@ export function ResourceList({ resources }: ResourceListProps) {
         <ResourceCard
           key={resource.id}
           title={resource.title}
-          category={resource.category}
-          bodySystem={resource.bodySystem}
+          bodySystems={resource.bodySystems}
+          tags={resource.tags}
           rating={resource.rating}
           description={resource.description}
         />
