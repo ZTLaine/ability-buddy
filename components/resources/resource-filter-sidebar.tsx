@@ -3,9 +3,10 @@
 import React from "react";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Badge } from "@/components/ui/badge";
-import { XIcon } from "lucide-react"; // For remove tag button
+import { XIcon, HelpCircleIcon } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import type { SelectedFilters, FilterSettings } from "@/types/resources";
 
 interface ResourceFilterSidebarProps {
@@ -31,9 +32,34 @@ export function ResourceFilterSidebar({
   };
 
   return (
-    <div className="w-full bg-white/80 p-6 rounded-lg shadow-md space-y-6 sticky top-24">
-      <div>
-        <h3 className="text-lg font-semibold text-teal-default mb-3">Selected Filters</h3>
+    <div className="w-full bg-white/70 backdrop-blur-sm p-6 rounded-xl shadow-md space-y-6 sticky top-24 border border-[#B39DDB]/20">
+      <div className="relative">
+        <div className="flex items-center mb-3 pb-2 border-b border-[#4CAF50]/30">
+          <h3 className="text-lg font-semibold text-teal-default">Selected Filters</h3>
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <button className="ml-2 text-gray-400 hover:text-[#00796B]">
+                  <HelpCircleIcon size={16} />
+                </button>
+              </TooltipTrigger>
+              <TooltipContent className="bg-white border border-gray-200 p-3 shadow-lg z-[999] max-w-xs">
+                <div className="space-y-2">
+                  <p className="font-medium text-teal-default">Filter Logic Explained:</p>
+                  <p className="text-xs text-gray-600">
+                    <span className="font-semibold">ALL (AND):</span> Resources must match all selected filters in a group.
+                  </p>
+                  <p className="text-xs text-gray-600">
+                    <span className="font-semibold">ANY (OR):</span> Resources must match at least one selected filter in a group.
+                  </p>
+                  <p className="text-xs text-gray-600">
+                    Both body systems and tags use their own logic settings.
+                  </p>
+                </div>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        </div>
         <div className="flex flex-wrap gap-2 min-h-[2.5rem]">
           {Object.entries(selectedFilters).flatMap(([type, tags]: [string, string[]]) => 
             tags.map((tag: string) => (
@@ -60,9 +86,12 @@ export function ResourceFilterSidebar({
 
       <Accordion type="multiple" defaultValue={["body-systems", "tags"]} className="w-full">
         {/* Body Systems Section */}
-        <AccordionItem value="body-systems">
-          <AccordionTrigger className="text-md font-medium text-teal-default hover:text-teal-dark">
-            Body Systems
+        <AccordionItem value="body-systems" className="border-[#4CAF50]/30">
+          <AccordionTrigger className="text-md font-medium text-teal-default hover:text-teal-dark group">
+            <span className="group-hover:underline decoration-[#4CAF50]/40 decoration-2 underline-offset-4 flex items-center">
+              <span className="w-2 h-2 rounded-full bg-[#4CAF50] mr-2"></span>
+              Body Systems
+            </span>
           </AccordionTrigger>
           <AccordionContent className="space-y-4 pt-2">
             <div className="flex items-center justify-between">
@@ -76,6 +105,7 @@ export function ResourceFilterSidebar({
                   checked={filterSettings.bodySystemsLogic === 'OR'}
                   onCheckedChange={(checked) => onFilterLogicChange("bodySystemsLogic", checked ? 'OR' : 'AND')}
                   aria-label="Toggle between AND and OR logic for body systems"
+                  className="data-[state=checked]:bg-[#4CAF50] data-[state=unchecked]:bg-[#4CAF50]/30"
                 />
                 <Label htmlFor="body-systems-logic-toggle" className={filterSettings.bodySystemsLogic === 'AND' ? "text-gray-500 text-xs" : "text-teal-default text-xs font-medium"}>
                   ANY
@@ -101,9 +131,12 @@ export function ResourceFilterSidebar({
         </AccordionItem>
 
         {/* Tags Section */}
-        <AccordionItem value="tags">
-          <AccordionTrigger className="text-md font-medium text-teal-default hover:text-teal-dark">
-            Tags
+        <AccordionItem value="tags" className="border-[#B39DDB]/30">
+          <AccordionTrigger className="text-md font-medium text-teal-default hover:text-teal-dark group">
+            <span className="group-hover:underline decoration-[#B39DDB]/40 decoration-2 underline-offset-4 flex items-center">
+              <span className="w-2 h-2 rounded-full bg-[#B39DDB] mr-2"></span>
+              Tags
+            </span>
           </AccordionTrigger>
           <AccordionContent className="space-y-4 pt-2">
             <div className="flex items-center justify-between">
@@ -117,6 +150,7 @@ export function ResourceFilterSidebar({
                   checked={filterSettings.tagsLogic === 'OR'}
                   onCheckedChange={(checked) => onFilterLogicChange("tagsLogic", checked ? 'OR' : 'AND')}
                   aria-label="Toggle between AND and OR logic for tags"
+                  className="data-[state=checked]:bg-[#B39DDB] data-[state=unchecked]:bg-[#B39DDB]/30"
                 />
                 <Label htmlFor="tags-logic-toggle" className={filterSettings.tagsLogic === 'AND' ? "text-gray-500 text-xs" : "text-teal-default text-xs font-medium"}>
                   ANY
@@ -141,19 +175,6 @@ export function ResourceFilterSidebar({
           </AccordionContent>
         </AccordionItem>
       </Accordion>
-
-      <div className="text-xs text-gray-600 mt-4 space-y-2">
-        <p className="font-medium text-teal-default">Filter Logic Explained:</p>
-        <p>
-          <span className="font-semibold">ALL (AND):</span> Resources must match all selected filters in a group.
-        </p>
-        <p>
-          <span className="font-semibold">ANY (OR):</span> Resources must match at least one selected filter in a group.
-        </p>
-        <p>
-          Both body systems and tags use their own logic settings.
-        </p>
-      </div>
     </div>
   );
 } 

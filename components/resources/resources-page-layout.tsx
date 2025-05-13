@@ -106,20 +106,32 @@ export function ResourcesPageLayout() {
   }, [selectedFilters, filterSettings]);
 
   return (
-    <div className="flex flex-col lg:flex-row gap-8">
-      <div className="lg:w-3/4">
-        <ResourceList resources={filteredResources} />
+    <div className="space-y-6">
+      <h1 className="text-3xl md:text-4xl font-bold text-[#00796B] mb-6 relative">
+        <span className="relative inline-block">
+          Resources
+          <span className="absolute bottom-0 left-0 w-full h-1 bg-[#4CAF50]/50 rounded-full"></span>
+        </span>
+      </h1>
+      
+      <div className="flex flex-col lg:flex-row gap-8">
+        <div className="lg:w-3/4">
+          <div className="bg-white/70 backdrop-blur-sm rounded-xl p-6 shadow-md border border-[#B39DDB]/20">
+            <ResourceList resources={filteredResources} />
+          </div>
+        </div>
+        
+        <aside className="lg:w-1/4">
+          <ResourceFilterSidebar 
+            selectedFilters={selectedFilters}
+            onTagClick={handleTagClick}
+            uniqueBodySystems={uniqueBodySystems}
+            uniqueTags={uniqueTags}
+            filterSettings={filterSettings}
+            onFilterLogicChange={handleFilterLogicChange}
+          />
+        </aside>
       </div>
-      <aside className="lg:w-1/4">
-        <ResourceFilterSidebar 
-          selectedFilters={selectedFilters}
-          onTagClick={handleTagClick}
-          uniqueBodySystems={uniqueBodySystems}
-          uniqueTags={uniqueTags}
-          filterSettings={filterSettings}
-          onFilterLogicChange={handleFilterLogicChange}
-        />
-      </aside>
     </div>
   );
 } 

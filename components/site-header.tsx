@@ -31,10 +31,10 @@ export function SiteHeader() {
     <>
       <header className="sticky top-0 z-50 bg-[#FFFDE7] shadow-sm border-b border-[#B39DDB]/30 py-4">
         <div className="container mx-auto px-4 flex justify-between items-center">
-          <div className="flex items-center gap-2">
+          <Link href="/" className="flex items-center gap-2 hover:opacity-90 transition-opacity">
             <LeafIcon className="h-8 w-8 text-[#4CAF50]" />
             <h1 className="text-2xl font-bold text-[#00796B]">Ability Buddy</h1>
-          </div>
+          </Link>
           <div className="flex items-center gap-4">
             <HighContrastToggle />
             <nav className="hidden md:flex items-center gap-6">
