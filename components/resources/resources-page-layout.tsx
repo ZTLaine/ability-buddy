@@ -1,14 +1,15 @@
 'use client';
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { ResourceList } from "./resource-list";
 import { ResourceFilterSidebar } from "./resource-filter-sidebar";
 import { mockResources, masterBodySystems } from "@/lib/mock-data";
 import { MockResource, SelectedFilters, FilterSettings } from "@/types/resources";
+import { AddNewResourceButton } from "./add-new-resource-button";
 
 // Helper to get unique tags from mock data - can also be moved to a shared utils file
-const getUniqueTags = (key: "bodySystems" | "tags") => {
-  const allTags = mockResources.flatMap(resource => resource[key]);
+const getUniqueTags = (key: "bodySystems" | "tags", resources: MockResource[]) => {
+  const allTags = resources.flatMap(resource => resource[key]);
   return Array.from(new Set(allTags)).sort() as string[];
 };
 
@@ -23,12 +24,13 @@ export function ResourcesPageLayout() {
     tagsLogic: "AND",
   });
   
+  const [allResources, setAllResources] = useState<MockResource[]>(mockResources);
   const [filteredResources, setFilteredResources] = useState<MockResource[]>(mockResources);
 
   // Use masterBodySystems for body systems (fixed list)
   const uniqueBodySystems = masterBodySystems;
   // Get unique tags from all resources
-  const uniqueTags = getUniqueTags("tags");
+  const uniqueTags = getUniqueTags("tags", allResources);
 
   const handleTagClick = (type: keyof SelectedFilters, tag: string) => {
     setSelectedFilters(prevFilters => {
@@ -54,65 +56,62 @@ export function ResourcesPageLayout() {
     }));
   };
 
-  // Updated filtering logic for arrays of bodySystems and tags
   useEffect(() => {
     const { bodySystems: selBodySystems, tags: selTags } = selectedFilters;
     const { bodySystemsLogic, tagsLogic } = filterSettings;
 
-    // If no filters are selected at all, show all resources
     if (selBodySystems.length === 0 && selTags.length === 0) {
-      setFilteredResources(mockResources);
+      setFilteredResources(allResources);
       return;
     }
 
-    const newFilteredResources = mockResources.filter(resource => {
-      // Check body systems match based on AND/OR logic
+    const newFilteredResources = allResources.filter(resource => {
       let bodySystemsMatch = true;
       if (selBodySystems.length > 0) {
         if (bodySystemsLogic === "AND") {
-          // Resource must have ALL selected body systems
           bodySystemsMatch = selBodySystems.every(system => 
             resource.bodySystems.includes(system)
           );
-        } else { // OR logic
-          // Resource must have AT LEAST ONE of the selected body systems
+        } else { 
           bodySystemsMatch = selBodySystems.some(system => 
             resource.bodySystems.includes(system)
           );
         }
       }
 
-      // Check tags match based on AND/OR logic
       let tagsMatch = true;
       if (selTags.length > 0) {
         if (tagsLogic === "AND") {
-          // Resource must have ALL selected tags
           tagsMatch = selTags.every(tag => 
             resource.tags.includes(tag)
           );
-        } else { // OR logic
-          // Resource must have AT LEAST ONE of the selected tags
+        } else { 
           tagsMatch = selTags.some(tag => 
             resource.tags.includes(tag)
           );
         }
       }
-
-      // Resource matches if it passes both the body systems and tags filters
       return bodySystemsMatch && tagsMatch;
     });
     
     setFilteredResources(newFilteredResources);
-  }, [selectedFilters, filterSettings]);
+  }, [selectedFilters, filterSettings, allResources]);
+
+  const handleResourceCreated = useCallback(() => {
+    console.log("Resource created, ideally re-fetch or update 'allResources' state here.");
+  }, []);
 
   return (
     <div className="space-y-6">
-      <h1 className="text-3xl md:text-4xl font-bold text-[#00796B] mb-6 relative">
-        <span className="relative inline-block">
-          Resources
-          <span className="absolute bottom-0 left-0 w-full h-1 bg-[#4CAF50]/50 rounded-full"></span>
-        </span>
-      </h1>
+      <div className="flex justify-between items-center mb-6">
+        <h1 className="text-3xl md:text-4xl font-bold text-[#00796B] relative">
+          <span className="relative inline-block">
+            Resources
+            <span className="absolute bottom-0 left-0 w-full h-1 bg-[#4CAF50]/50 rounded-full"></span>
+          </span>
+        </h1>
+        <AddNewResourceButton onResourceCreated={handleResourceCreated} />
+      </div>
       
       <div className="flex flex-col lg:flex-row gap-8">
         <div className="lg:w-3/4">

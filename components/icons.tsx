@@ -4,6 +4,7 @@ import {
     Loader2,
     Eye,
     EyeOff,
+    UserCircle,
 } from "lucide-react";
 
 // Simple Google icon placeholder (replace with actual SVG or a better icon)
@@ -22,6 +23,7 @@ export const Icons = {
     google: GoogleIcon,
     eye: Eye,
     eyeOff: EyeOff,
+    userCircle: UserCircle,
 };
 
 export type Icon = React.FC<LucideProps>; 

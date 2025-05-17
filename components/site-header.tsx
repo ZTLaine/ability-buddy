@@ -2,13 +2,24 @@
 
 import Link from "next/link"
 import { useState } from "react"
+import { useSession, signOut } from "next-auth/react"
 import { Button } from "@/components/ui/button"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
 import { HighContrastToggle } from "@/components/high-contrast-toggle"
 import { LeafIcon } from "lucide-react"
 import { LoginModal } from "@/components/login-modal"
 import { RegisterModal } from "@/components/register-modal"
+import { Icons } from "@/components/icons"
 
 export function SiteHeader() {
+  const { data: session, status } = useSession()
   const [showLoginModal, setShowLoginModal] = useState(false)
   const [showRegisterModal, setShowRegisterModal] = useState(false)
 
@@ -25,6 +36,68 @@ export function SiteHeader() {
   const closeModals = () => {
     setShowLoginModal(false)
     setShowRegisterModal(false)
+  }
+
+  const handleLogout = async () => {
+    await signOut({ callbackUrl: "/" })
+  }
+
+  let authRelatedElements: React.ReactNode
+
+  if (status === "loading") {
+    authRelatedElements = (
+      <div className="h-9 w-20 animate-pulse bg-gray-200 rounded-md hidden md:inline-flex"></div>
+    )
+  } else if (session) {
+    authRelatedElements = (
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button
+            variant="ghost"
+            className="relative h-9 w-9 rounded-full hover:bg-[#B39DDB]/20"
+          >
+            <Icons.userCircle className="h-7 w-7 text-[#00796B]" />
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent className="w-56 bg-white border-[#B39DDB]/50 rounded-lg shadow-lg" align="end" forceMount>
+          <DropdownMenuLabel className="font-normal">
+            <div className="flex flex-col space-y-1">
+              <p className="text-sm font-medium leading-none text-[#00796B]">
+                {session.user?.name || "Anonymous User"}
+              </p>
+              <p className="text-xs leading-none text-gray-500">
+                {session.user?.email}
+              </p>
+            </div>
+          </DropdownMenuLabel>
+          <DropdownMenuSeparator className="bg-[#B39DDB]/30" />
+          <DropdownMenuItem
+            onClick={handleLogout}
+            className="text-[#00796B] hover:!bg-[#B39DDB]/20 hover:!text-[#00796B] focus:bg-[#B39DDB]/20 focus:text-[#00796B] rounded-md cursor-pointer"
+          >
+            Log out
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
+    )
+  } else {
+    authRelatedElements = (
+      <>
+        <Button
+          variant="outline"
+          className="hidden md:inline-flex border-[#B39DDB] text-[#00796B] hover:bg-[#B39DDB]/20 hover:border-[#B39DDB]/80 hover:shadow-lg hover:translate-y-[-2px] transition-all duration-300"
+          onClick={openLoginModal}
+        >
+          Log In
+        </Button>
+        <Button
+          className="hidden md:inline-flex bg-[#4CAF50] hover:bg-[#4CAF50]/90 hover:shadow-lg hover:translate-y-[-2px] transition-all duration-300 text-white"
+          onClick={openRegisterModal}
+        >
+          Sign Up
+        </Button>
+      </>
+    )
   }
 
   return (
@@ -48,19 +121,9 @@ export function SiteHeader() {
                 Contact
               </Link>
             </nav>
-            <Button
-              variant="outline"
-              className="hidden md:inline-flex border-[#B39DDB] text-[#00796B] hover:bg-[#B39DDB]/20 hover:border-[#B39DDB]/80 hover:shadow-lg hover:translate-y-[-2px] transition-all duration-300"
-              onClick={openLoginModal}
-            >
-              Log In
-            </Button>
-            <Button
-              className="hidden md:inline-flex bg-[#4CAF50] hover:bg-[#4CAF50]/90 hover:shadow-lg hover:translate-y-[-2px] transition-all duration-300 text-white"
-              onClick={openRegisterModal}
-            >
-              Sign Up
-            </Button>
+
+            {authRelatedElements}
+
             <Button variant="ghost" className="md:hidden">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -84,9 +147,12 @@ export function SiteHeader() {
         </div>
       </header>
 
-      <LoginModal isOpen={showLoginModal} onClose={closeModals} onSwitchToRegister={openRegisterModal} />
-
-      <RegisterModal isOpen={showRegisterModal} onClose={closeModals} onSwitchToLogin={openLoginModal} />
+      {status !== "authenticated" && (
+        <>
+          <LoginModal isOpen={showLoginModal} onClose={closeModals} onSwitchToRegister={openRegisterModal} />
+          <RegisterModal isOpen={showRegisterModal} onClose={closeModals} onSwitchToLogin={openLoginModal} />
+        </>
+      )}
     </>
   )
 }
