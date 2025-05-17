@@ -3,13 +3,16 @@
 import type React from "react"
 
 import { useState } from "react"
+import { signIn } from "next-auth/react"
+import { useRouter } from "next/navigation"
 import { z } from "zod"
 import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
+import { CustomInput } from "@/components/ui/custom-input"
 import { Label } from "@/components/ui/label"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { AlertCircle } from "lucide-react"
+import { Icons } from "@/components/icons"
 
 interface LoginModalProps {
   isOpen: boolean
@@ -23,10 +26,12 @@ const loginSchema = z.object({
 })
 
 export function LoginModal({ isOpen, onClose, onSwitchToRegister }: LoginModalProps) {
+  const router = useRouter()
   const [formData, setFormData] = useState({
     email: "",
     password: "",
   })
+  const [showPassword, setShowPassword] = useState(false)
   const [rememberMe, setRememberMe] = useState(false)
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -57,14 +62,20 @@ export function LoginModal({ isOpen, onClose, onSwitchToRegister }: LoginModalPr
       // Validate form data
       loginSchema.parse(formData)
 
-      // Here you would typically send the data to your API
-      console.log("Login data:", { ...formData, rememberMe })
+      // Use NextAuth signIn method for credentials
+      const result = await signIn("credentials", {
+        redirect: false,
+        email: formData.email,
+        password: formData.password,
+      })
 
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 1000))
-
-      // Close modal on success
-      onClose()
+      if (result?.error) {
+        setErrors({ form: result.error === "CredentialsSignin" ? "Invalid email or password." : result.error })
+      } else if (result?.ok) {
+        onClose()
+        router.push("/resources")
+        router.refresh()
+      }
     } catch (err) {
       if (err instanceof z.ZodError) {
         const newErrors: Record<string, string> = {}
@@ -82,9 +93,22 @@ export function LoginModal({ isOpen, onClose, onSwitchToRegister }: LoginModalPr
     }
   }
 
+  const handleGoogleSignIn = async () => {
+    setIsSubmitting(true)
+    setErrors({})
+    try {
+      await signIn("google", { callbackUrl: "/resources" })
+      // No need to close modal here as the redirect will happen automatically
+    } catch (err) {
+      setErrors({ form: "Failed to sign in with Google. Please try again." })
+      console.error("Google sign-in error:", err)
+      setIsSubmitting(false)
+    }
+  }
+
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[425px] bg-white border border-[#B39DDB]/30 shadow-lg">
+      <DialogContent className="sm:max-w-[425px] bg-white border border-[#B39DDB]/30 shadow-lg rounded-lg">
         <DialogHeader>
           <DialogTitle className="text-2xl font-bold text-[#00796B]">Log in to Ability Buddy</DialogTitle>
           <DialogDescription>Access your account to share and manage resources.</DialogDescription>
@@ -92,7 +116,7 @@ export function LoginModal({ isOpen, onClose, onSwitchToRegister }: LoginModalPr
 
         <form onSubmit={handleSubmit} className="space-y-4 py-4">
           {errors.form && (
-            <div className="bg-red-50 p-3 rounded-md flex items-start gap-2 text-red-700 text-sm">
+            <div className="bg-red-50 p-3 rounded-lg flex items-start gap-2 text-red-700 text-sm">
               <AlertCircle className="h-5 w-5 mt-0.5 flex-shrink-0" />
               <span>{errors.form}</span>
             </div>
@@ -102,14 +126,14 @@ export function LoginModal({ isOpen, onClose, onSwitchToRegister }: LoginModalPr
             <Label htmlFor="email" className="text-[#00796B]">
               Email
             </Label>
-            <Input
+            <CustomInput
               id="email"
               name="email"
               type="email"
               placeholder="your.email@example.com"
               value={formData.email}
               onChange={handleChange}
-              className={`border-[#B39DDB] ${errors.email ? "border-red-500" : ""}`}
+              className={`border-[#B39DDB] rounded-lg ${errors.email ? "border-red-500" : ""}`}
               aria-invalid={errors.email ? "true" : "false"}
               aria-describedby={errors.email ? "email-error" : undefined}
             />
@@ -134,16 +158,28 @@ export function LoginModal({ isOpen, onClose, onSwitchToRegister }: LoginModalPr
                 Forgot password?
               </Button>
             </div>
-            <Input
-              id="password"
-              name="password"
-              type="password"
-              value={formData.password}
-              onChange={handleChange}
-              className={`border-[#B39DDB] ${errors.password ? "border-red-500" : ""}`}
-              aria-invalid={errors.password ? "true" : "false"}
-              aria-describedby={errors.password ? "password-error" : undefined}
-            />
+            <div className="relative">
+              <CustomInput
+                id="password"
+                name="password"
+                type={showPassword ? "text" : "password"}
+                value={formData.password}
+                onChange={handleChange}
+                className={`border-[#B39DDB] rounded-lg pr-10 ${errors.password ? "border-red-500" : ""}`}
+                aria-invalid={errors.password ? "true" : "false"}
+                aria-describedby={errors.password ? "password-error" : undefined}
+              />
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                className="absolute right-1 top-1/2 -translate-y-1/2 h-7 w-7 text-gray-500 hover:text-gray-700"
+                onClick={() => setShowPassword(!showPassword)}
+                aria-label={showPassword ? "Hide password" : "Show password"}
+              >
+                {showPassword ? <Icons.eyeOff className="h-4 w-4" /> : <Icons.eye className="h-4 w-4" />}
+              </Button>
+            </div>
             {errors.password && (
               <p id="password-error" className="text-red-500 text-sm mt-1">
                 {errors.password}
@@ -156,7 +192,7 @@ export function LoginModal({ isOpen, onClose, onSwitchToRegister }: LoginModalPr
               id="remember"
               checked={rememberMe}
               onCheckedChange={(checked) => setRememberMe(checked === true)}
-              className="data-[state=checked]:bg-[#4CAF50] data-[state=checked]:border-[#4CAF50]"
+              className="data-[state=checked]:bg-[#4CAF50] data-[state=checked]:border-[#4CAF50] rounded-sm"
             />
             <Label htmlFor="remember" className="text-sm text-gray-600">
               Remember me for 30 days
@@ -165,14 +201,40 @@ export function LoginModal({ isOpen, onClose, onSwitchToRegister }: LoginModalPr
 
           <Button
             type="submit"
-            className="w-full bg-[#4CAF50] hover:bg-[#4CAF50]/90 text-white"
+            className="w-full bg-[#4CAF50] hover:bg-[#4CAF50]/90 text-white rounded-lg"
             disabled={isSubmitting}
           >
             {isSubmitting ? "Logging in..." : "Log in"}
           </Button>
 
+          <div className="relative my-4">
+            <div className="absolute inset-0 flex items-center">
+              <span className="w-full border-t border-gray-300" />
+            </div>
+            <div className="relative flex justify-center text-xs uppercase">
+              <span className="bg-white px-2 text-gray-500 rounded-lg">
+                Or continue with
+              </span>
+            </div>
+          </div>
+
+          <Button
+            type="button"
+            variant="outline"
+            className="w-full border-[#B39DDB] text-[#00796B] rounded-lg flex items-center justify-center gap-2"
+            onClick={handleGoogleSignIn}
+            disabled={isSubmitting}
+          >
+            {isSubmitting ? (
+              <Icons.spinner className="mr-2 h-4 w-4 animate-spin" />
+            ) : (
+              <Icons.google className="mr-2 h-4 w-4" />
+            )}
+            Sign in with Google
+          </Button>
+
           <div className="text-center text-sm text-gray-600">
-            Don't have an account?{" "}
+            Don&apos;t have an account?{" "}
             <Button type="button" variant="link" className="text-[#4CAF50] p-0 h-auto" onClick={onSwitchToRegister}>
               Sign up
             </Button>

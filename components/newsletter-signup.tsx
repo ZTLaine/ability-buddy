@@ -4,7 +4,7 @@ import type React from "react"
 
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
+import { CustomInput } from "@/components/ui/custom-input"
 import { z } from "zod"
 
 const emailSchema = z.string().email("Please enter a valid email address")
@@ -46,18 +46,18 @@ export function NewsletterSignup() {
     <form onSubmit={handleSubmit} className="space-y-4">
       <div>
         <div className="flex gap-2">
-          <Input
+          <CustomInput
             type="email"
             placeholder="Your email address"
             value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            className="bg-white border-[#B39DDB] focus:border-[#4CAF50] transition-all duration-300"
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setEmail(e.target.value)}
+            className="bg-white border-[#B39DDB] focus:border-[#4CAF50] rounded-lg"
             aria-label="Email address for newsletter"
             aria-describedby={error ? "email-error" : undefined}
           />
           <Button
             type="submit"
-            className="bg-[#4CAF50] hover:bg-[#4CAF50]/90 hover:shadow-lg hover:translate-y-[-2px] transition-all duration-300 text-white"
+            className="bg-[#4CAF50] hover:bg-[#4CAF50]/90 hover:shadow-lg hover:translate-y-[-2px] transition-all duration-300 text-white rounded-lg"
           >
             Subscribe
           </Button>
