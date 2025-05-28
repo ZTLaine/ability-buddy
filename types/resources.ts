@@ -3,7 +3,6 @@ export interface MockResource {
   title: string;
   bodySystems: string[]; // Array of body systems (required, min 1)
   tags: string[]; // Array of tags (optional)
-  rating: number; // Out of 5
   description: string;
   // Future fields to align with full requirements:
   // media?: { type: 'image' | 'video'; url: string; altText: string }[];
@@ -28,6 +27,35 @@ export interface ResourceCardProps {
   title: string;
   bodySystems: string[];
   tags: string[];
-  rating: number;
   description: string;
+}
+
+export interface Author {
+  id: string;
+  name: string | null;
+  image: string | null;
+}
+
+export interface Tag {
+  id: string;
+  name: string;
+}
+
+export interface ResourceTagLink {
+  tag: Tag;
+}
+
+export interface Resource {
+  id: string;
+  title: string;
+  description: string;
+  mediaUrls: any; // Prisma stores Json as `any` by default, or you can type it e.g. string[] | null
+  bodySystems: string[] | null; // Stored as Json in Prisma, comes as string[] or null
+  userId: string;
+  createdAt: string; // Date will be stringified
+  updatedAt: string; // Date will be stringified
+  externalLink: string | null;
+  creationInstructions: string | null;
+  author: Author;
+  tags: ResourceTagLink[]; // Array of tag objects
 } 

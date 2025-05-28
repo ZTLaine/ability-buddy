@@ -3,14 +3,20 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { ResourceList } from "./resource-list";
 import { ResourceFilterSidebar } from "./resource-filter-sidebar";
-import { mockResources, masterBodySystems } from "@/lib/mock-data";
-import { MockResource, SelectedFilters, FilterSettings } from "@/types/resources";
+import { masterBodySystems } from "@/lib/mock-data";
+import type { SelectedFilters, FilterSettings, Resource } from "@/types/resources";
 import { AddNewResourceButton } from "./add-new-resource-button";
 
-// Helper to get unique tags from mock data - can also be moved to a shared utils file
-const getUniqueTags = (key: "bodySystems" | "tags", resources: MockResource[]) => {
-  const allTags = resources.flatMap(resource => resource[key]);
-  return Array.from(new Set(allTags)).sort() as string[];
+// Helper to get unique tags from API data
+const getUniqueTagsFromResources = (resources: Resource[]): string[] => {
+  const allTags = resources.flatMap(resource => resource.tags.map(rt => rt.tag.name));
+  return Array.from(new Set(allTags)).sort();
+};
+
+// Helper to get unique body systems from API data (if needed, though masterBodySystems is primary for UI)
+const getUniqueBodySystemsFromResources = (resources: Resource[]): string[] => {
+  const allSystems = resources.flatMap(resource => resource.bodySystems || []);
+  return Array.from(new Set(allSystems)).sort();
 };
 
 export function ResourcesPageLayout() {
@@ -24,13 +30,39 @@ export function ResourcesPageLayout() {
     tagsLogic: "AND",
   });
   
-  const [allResources, setAllResources] = useState<MockResource[]>(mockResources);
-  const [filteredResources, setFilteredResources] = useState<MockResource[]>(mockResources);
+  const [allResources, setAllResources] = useState<Resource[]>([]);
+  const [filteredResources, setFilteredResources] = useState<Resource[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  // Use masterBodySystems for body systems (fixed list)
-  const uniqueBodySystems = masterBodySystems;
-  // Get unique tags from all resources
-  const uniqueTags = getUniqueTags("tags", allResources);
+  // Use masterBodySystems for body systems filter options
+  const uniqueBodySystemsForFilter = masterBodySystems;
+  // Get unique tags from all resources for filter options
+  const [uniqueTagsForFilter, setUniqueTagsForFilter] = useState<string[]>([]);
+
+  const fetchResources = useCallback(async () => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      const response = await fetch("/api/resources");
+      if (!response.ok) {
+        throw new Error(`Failed to fetch resources: ${response.statusText}`);
+      }
+      const data: Resource[] = await response.json();
+      setAllResources(data);
+      setFilteredResources(data);
+      setUniqueTagsForFilter(getUniqueTagsFromResources(data));
+    } catch (err) {
+      console.error(err);
+      setError((err as Error).message);
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchResources();
+  }, [fetchResources]);
 
   const handleTagClick = (type: keyof SelectedFilters, tag: string) => {
     setSelectedFilters(prevFilters => {
@@ -68,26 +100,28 @@ export function ResourcesPageLayout() {
     const newFilteredResources = allResources.filter(resource => {
       let bodySystemsMatch = true;
       if (selBodySystems.length > 0) {
+        const resourceBodySystems = resource.bodySystems || [];
         if (bodySystemsLogic === "AND") {
           bodySystemsMatch = selBodySystems.every(system => 
-            resource.bodySystems.includes(system)
+            resourceBodySystems.includes(system)
           );
         } else { 
           bodySystemsMatch = selBodySystems.some(system => 
-            resource.bodySystems.includes(system)
+            resourceBodySystems.includes(system)
           );
         }
       }
 
       let tagsMatch = true;
       if (selTags.length > 0) {
+        const resourceTagNames = resource.tags.map(rt => rt.tag.name);
         if (tagsLogic === "AND") {
           tagsMatch = selTags.every(tag => 
-            resource.tags.includes(tag)
+            resourceTagNames.includes(tag)
           );
         } else { 
           tagsMatch = selTags.some(tag => 
-            resource.tags.includes(tag)
+            resourceTagNames.includes(tag)
           );
         }
       }
@@ -98,8 +132,16 @@ export function ResourcesPageLayout() {
   }, [selectedFilters, filterSettings, allResources]);
 
   const handleResourceCreated = useCallback(() => {
-    console.log("Resource created, ideally re-fetch or update 'allResources' state here.");
-  }, []);
+    fetchResources();
+  }, [fetchResources]);
+
+  if (isLoading) {
+    return <div className="text-center py-12">Loading resources...</div>;
+  }
+
+  if (error) {
+    return <div className="text-center py-12 text-red-500">Error loading resources: {error}</div>;
+  }
 
   return (
     <div className="space-y-6">
@@ -124,8 +166,8 @@ export function ResourcesPageLayout() {
           <ResourceFilterSidebar 
             selectedFilters={selectedFilters}
             onTagClick={handleTagClick}
-            uniqueBodySystems={uniqueBodySystems}
-            uniqueTags={uniqueTags}
+            uniqueBodySystems={uniqueBodySystemsForFilter}
+            uniqueTags={uniqueTagsForFilter}
             filterSettings={filterSettings}
             onFilterLogicChange={handleFilterLogicChange}
           />

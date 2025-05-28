@@ -16,7 +16,7 @@ export async function POST(req: Request) {
     const body = await req.json();
     const validatedData = createResourceSchema.parse(body);
 
-    const { title, description, tags, mediaUrls, externalLink, creationInstructions } = validatedData;
+    const { title, description, tags, bodySystems, mediaUrls, externalLink, creationInstructions } = validatedData;
     const userId = session.user.id;
 
     const newResource = await prisma.resource.create({
@@ -24,6 +24,7 @@ export async function POST(req: Request) {
         title,
         description,
         userId,
+        bodySystems: bodySystems ?? undefined,
         mediaUrls: mediaUrls ?? undefined,
         externalLink: externalLink ?? undefined,
         creationInstructions: creationInstructions ?? undefined,
@@ -57,6 +58,30 @@ export async function POST(req: Request) {
       return NextResponse.json({ message: "Validation failed", errors: error.errors }, { status: 400 });
     }
     console.error("Error creating resource:", error);
+    return NextResponse.json({ message: "Internal server error" }, { status: 500 });
+  }
+}
+
+export async function GET() {
+  try {
+    const resources = await prisma.resource.findMany({
+      orderBy: {
+        createdAt: "desc",
+      },
+      include: {
+        author: {
+          select: { id: true, name: true, image: true },
+        },
+        tags: {
+          include: {
+            tag: { select: { id: true, name: true } },
+          },
+        },
+      },
+    });
+    return NextResponse.json(resources, { status: 200 });
+  } catch (error) {
+    console.error("Error fetching resources:", error);
     return NextResponse.json({ message: "Internal server error" }, { status: 500 });
   }
 } 

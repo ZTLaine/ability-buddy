@@ -1,9 +1,9 @@
 import React from "react";
 import { ResourceCard } from "@/components/resource-card";
-import { MockResource } from "@/types/resources";
+import type { Resource } from "@/types/resources";
 
 interface ResourceListProps {
-  resources: MockResource[];
+  resources: Resource[];
 }
 
 export function ResourceList({ resources }: ResourceListProps) {
@@ -22,9 +22,8 @@ export function ResourceList({ resources }: ResourceListProps) {
         <ResourceCard
           key={resource.id}
           title={resource.title}
-          bodySystems={resource.bodySystems}
-          tags={resource.tags}
-          rating={resource.rating}
+          bodySystems={resource.bodySystems || []}
+          tags={resource.tags.map(rt => rt.tag.name)}
           description={resource.description}
         />
       ))}

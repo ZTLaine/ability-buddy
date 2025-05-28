@@ -17,8 +17,10 @@ import {
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Checkbox } from "@/components/ui/checkbox";
 import { useSession } from "next-auth/react";
 import { toast } from "@/components/ui/use-toast";
+import { masterBodySystems } from "@/lib/mock-data";
 
 interface CreateResourceModalProps {
   children: React.ReactNode;
@@ -42,7 +44,7 @@ export function CreateResourceModal({ children, onResourceCreated }: CreateResou
     },
   });
 
-  const { handleSubmit, formState: { errors }, reset, watch } = form;
+  const { handleSubmit, formState: { errors }, reset, watch, control } = form;
   const currentTags = watch("tags", []);
   const [tagInput, setTagInput] = useState("");
 
@@ -179,6 +181,58 @@ export function CreateResourceModal({ children, onResourceCreated }: CreateResou
               </div>
                {errors.tags && <p className="text-sm font-medium text-destructive">{errors.tags.message || (errors.tags as any)?.root?.message}</p>}
             </FormItem>
+
+            <FormField
+              control={control}
+              name="bodySystems"
+              render={() => (
+                <FormItem>
+                  <FormLabel>Body Systems (Optional, up to 10)</FormLabel>
+                  <FormDescription>
+                    Select the body systems relevant to this resource.
+                  </FormDescription>
+                  <div className="grid grid-cols-2 gap-x-4 gap-y-2 pt-2">
+                    {masterBodySystems.map((system) => (
+                      <FormField
+                        key={system}
+                        control={control}
+                        name="bodySystems"
+                        render={({ field }) => {
+                          const currentBodySystems = field.value || [];
+                          return (
+                            <FormItem className="flex flex-row items-start space-x-3 space-y-0">
+                              <FormControl>
+                                <Checkbox
+                                  checked={currentBodySystems.includes(system)}
+                                  onCheckedChange={(checked) => {
+                                    const updatedSystems = checked
+                                      ? [...currentBodySystems, system]
+                                      : currentBodySystems.filter((s: string) => s !== system);
+                                    if (updatedSystems.length <= 10) {
+                                       field.onChange(updatedSystems);
+                                    } else {
+                                       toast({
+                                         title: "Limit Reached",
+                                         description: "You can select a maximum of 10 body systems.",
+                                         variant: "destructive"
+                                       });
+                                    }
+                                  }}
+                                />
+                              </FormControl>
+                              <FormLabel className="font-normal">
+                                {system}
+                              </FormLabel>
+                            </FormItem>
+                          );
+                        }}
+                      />
+                    ))}
+                  </div>
+                  <FormMessage>{errors.bodySystems?.message}</FormMessage>
+                </FormItem>
+              )}
+            />
 
             <FormField
               control={form.control}
