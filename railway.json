@@ -1,6 +1,6 @@
 {
   "$schema": "https://railway.app/railway.schema.json",
   "deploy": {
-    "startCommand": "npx prisma migrate resolve --applied 20250514200049_add_nextauth_tables && npx prisma migrate deploy && npm start"
+    "startCommand": "npx prisma db push --force-reset && npm start"
   }
 } 
