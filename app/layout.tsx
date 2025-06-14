@@ -3,9 +3,8 @@ import './globals.css'
 import AuthProvider from '@/components/providers/session-provider'
 
 export const metadata: Metadata = {
-  title: 'v0 App',
-  description: 'Created with v0',
-  generator: 'v0.dev',
+  title: 'Ability Buddy',
+  description: 'Ability Buddy is a platform for creating and sharing disability-related resources.',
 }
 
 export default function RootLayout({
