@@ -7,21 +7,24 @@ const featuredResources: ResourceCardProps[] = [
     title: "Adaptive Kitchen Tools Collection",
     bodySystems: ["Musculoskeletal"],
     tags: ["Mobility Aid", "Kitchen Tool", "Daily Living"],
-    rating: 5,
+    likesCount: 24,
+    isSupported: true, // User has supported this resource - shows flower
     description: "A comprehensive set of kitchen tools designed for people with limited grip strength and dexterity."
   },
   {
     title: "Sensory-Friendly Workplace Guide",
     bodySystems: ["Neurological", "Auditory"],
     tags: ["Sensory Processing", "Workplace Accommodation", "Guide"],
-    rating: 4,
+    likesCount: 18,
+    isSupported: false, // User hasn't supported this - shows sprout
     description: "Step-by-step guide for creating sensory-friendly workplace accommodations."
   },
   {
     title: "Chronic Pain Management App",
     bodySystems: ["Neurological", "Musculoskeletal"],
     tags: ["Pain Management", "Mobile App", "Self-care"],
-    rating: 4,
+    likesCount: 31,
+    isSupported: true, // User has supported this resource - shows flower
     description: "Mobile application with tracking tools and community support for chronic pain conditions."
   }
 ]

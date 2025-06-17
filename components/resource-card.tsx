@@ -1,9 +1,9 @@
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
-import { LeafRating } from "@/components/leaf-rating"
 import { TagTooltip } from "@/components/tag-tooltip"
 import { ResourceCardProps } from "@/types/resources"
+import { Sprout, Flower } from "lucide-react"
 
-export function ResourceCard({ title, bodySystems, tags, rating, description }: ResourceCardProps) {
+export function ResourceCard({ title, bodySystems, tags, description, likesCount = 0, isSupported = false }: ResourceCardProps) {
   return (
     <div className="h-full flex">
       <Card className="flex flex-col overflow-visible paper-texture transition-all duration-300 hover:shadow-xl transform-gpu hover:scale-[1.02] border-2 border-gray-200 hover:border-[#4CAF50] cursor-pointer group w-full rounded-xl">
@@ -36,10 +36,16 @@ export function ResourceCard({ title, bodySystems, tags, rating, description }: 
           <p className="text-gray-700 group-hover:text-gray-900 transition-colors duration-300">{description}</p>
         </CardContent>
         <CardFooter className="flex justify-between border-t pt-4 rounded-b-xl">
-          <LeafRating rating={rating} />
-          <span className="text-sm text-gray-500 group-hover:text-gray-700 transition-colors duration-300">
-            12 reviews
-          </span>
+          <div className="flex items-center gap-2 text-gray-600 group-hover:text-gray-800 transition-colors duration-300">
+            {isSupported ? (
+              <Flower className="h-4 w-4 text-[#B39DDB] transition-all duration-300" />
+            ) : (
+              <Sprout className="h-4 w-4 text-[#4CAF50] transition-all duration-300" />
+            )}
+            <span className="text-sm font-medium">
+              {likesCount} {likesCount === 1 ? 'supporter' : 'supporters'}
+            </span>
+          </div>
         </CardFooter>
       </Card>
     </div>

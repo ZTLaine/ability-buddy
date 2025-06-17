@@ -65,6 +65,11 @@
   background-color: #000000 !important;
 }
 
+/* Resource card icon colors for high contrast mode */
+.high-contrast .text-\[\#B39DDB\] {
+  color: #6200ea !important;
+}
+
 .high-contrast a,
 .high-contrast button {
   outline: 2px solid transparent;

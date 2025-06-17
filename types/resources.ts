@@ -28,6 +28,8 @@ export interface ResourceCardProps {
   bodySystems: string[];
   tags: string[];
   description: string;
+  likesCount?: number;
+  isSupported?: boolean; // Whether the current user has supported this resource
 }
 
 export interface Author {
@@ -58,4 +60,6 @@ export interface Resource {
   creationInstructions: string | null;
   author: Author;
   tags: ResourceTagLink[]; // Array of tag objects
+  likesCount?: number; // Number of likes this resource has received
+  isSupported?: boolean; // Whether the current user has supported this resource
 } 

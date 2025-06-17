@@ -25,6 +25,8 @@ export function ResourceList({ resources }: ResourceListProps) {
           bodySystems={resource.bodySystems || []}
           tags={resource.tags.map(rt => rt.tag.name)}
           description={resource.description}
+          likesCount={resource.likesCount || 0}
+          isSupported={resource.isSupported || false}
         />
       ))}
     </div>
