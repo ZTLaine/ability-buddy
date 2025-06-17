@@ -5,6 +5,16 @@ import { PrismaAdapter } from "@next-auth/prisma-adapter";
 import prisma from "@/lib/prisma"; // We'll create this Prisma client instance shortly
 import bcrypt from "bcryptjs";
 
+// Determine if we're in production
+const isProduction = process.env.NODE_ENV === 'production' || process.env.RAILWAY_ENVIRONMENT === 'production';
+
+console.log('NextAuth Environment Check:', {
+  NODE_ENV: process.env.NODE_ENV,
+  RAILWAY_ENVIRONMENT: process.env.RAILWAY_ENVIRONMENT,
+  isProduction,
+  sessionStrategy: isProduction ? 'database' : 'jwt'
+});
+
 export const authOptions: NextAuthOptions = {
     adapter: PrismaAdapter(prisma),
     providers: [
@@ -53,22 +63,31 @@ export const authOptions: NextAuthOptions = {
     }),
     ],
     session: {
-        strategy: "jwt", // Using JWT for session strategy
+        strategy: isProduction ? "database" : "jwt", // Use database sessions in production, JWT locally
     },
     callbacks: {
-        async session({ session, token }) {
-            // Add custom properties to the session
-            if (token.sub && session.user) {
-                session.user.id = token.sub; // 'sub' (subject) from JWT is the user id
-                session.user.role = token.role;
+        // Handle both session types
+        async session({ session, token, user }) {
+            if (isProduction) {
+                // Database sessions - user is available
+                if (user && session.user) {
+                    session.user.id = user.id;
+                    session.user.role = (user as any).role;
+                }
+            } else {
+                // JWT sessions - token is available
+                if (token?.sub && session.user) {
+                    session.user.id = token.sub;
+                    session.user.role = token.role as any;
+                }
             }
             return session;
         },
-        async jwt({ token, user, account, profile }) {
-            // Persist the OAuth access_token and or the user id and role to the token right after signin
-            if (user) { // user is only passed on first call (sign-in)
-                token.sub = user.id; // 'sub' will store the user ID
-                token.role = user.role; // Add role to JWT
+        async jwt({ token, user }) {
+            // Only needed for JWT sessions (local development)
+            if (!isProduction && user) {
+                token.sub = user.id;
+                token.role = user.role;
             }
             return token;
         },

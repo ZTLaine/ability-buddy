@@ -9,7 +9,11 @@ export async function POST(req: Request) {
   try {
     const session = await getServerSession(authOptions);
 
+
+    console.log("Session:", JSON.stringify(session, null, 2)); // Debug logging
+
     if (!session || !session.user || !session.user.id) {
+      console.log("No session or user ID found"); // Debug logging
       return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
     }
 
@@ -18,6 +22,20 @@ export async function POST(req: Request) {
 
     const { title, description, tags, bodySystems, mediaUrls, externalLink, creationInstructions } = validatedData;
     const userId = session.user.id;
+
+    console.log("Attempting to create resource with userId:", userId); // Debug logging
+    
+    // Check if user exists before creating resource
+    const existingUser = await prisma.user.findUnique({
+      where: { id: userId }
+    });
+
+    if (!existingUser) {
+      console.log("User not found in database:", userId); // Debug logging
+      return NextResponse.json({ message: "User not found" }, { status: 404 });
+    }
+
+    console.log("User found, creating resource..."); // Debug logging
 
     const newResource = await prisma.resource.create({
       data: {
@@ -51,6 +69,7 @@ export async function POST(req: Request) {
       },
     });
 
+    console.log("Resource created successfully:", newResource.id); // Debug logging
     return NextResponse.json(newResource, { status: 201 });
 
   } catch (error) {
