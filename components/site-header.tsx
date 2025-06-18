@@ -4,6 +4,7 @@ import Link from "next/link"
 import { useState } from "react"
 import { useSession, signOut } from "next-auth/react"
 import { Button } from "@/components/ui/button"
+import { AppButton } from "@/components/ui/app-button"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -83,19 +84,20 @@ export function SiteHeader() {
   } else {
     authRelatedElements = (
       <>
-        <Button
-          variant="outline"
-          className="hidden md:inline-flex border-[#B39DDB] text-[#00796B] hover:bg-[#B39DDB]/20 hover:border-[#B39DDB]/80 hover:shadow-lg hover:translate-y-[-2px] transition-all duration-300"
+        <AppButton
+          appVariant="secondary"
+          className="hidden md:inline-flex"
           onClick={openLoginModal}
         >
           Log In
-        </Button>
-        <Button
-          className="hidden md:inline-flex bg-[#4CAF50] hover:bg-[#4CAF50]/90 hover:shadow-lg hover:translate-y-[-2px] transition-all duration-300 text-white"
+        </AppButton>
+        <AppButton
+          appVariant="primary"
+          className="hidden md:inline-flex"
           onClick={openRegisterModal}
         >
           Sign Up
-        </Button>
+        </AppButton>
       </>
     )
   }

@@ -60,5 +60,6 @@ export const masterBodySystems = [
   "Endocrine",
   "Immune",
   "Genitourinary",
-  "General Mobility"
+  "General Mobility",
+  "Dermatological",
 ]; 

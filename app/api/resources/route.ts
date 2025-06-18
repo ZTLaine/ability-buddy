@@ -83,6 +83,9 @@ export async function POST(req: Request) {
 
 export async function GET() {
   try {
+    const session = await getServerSession(authOptions);
+    const userId = session?.user?.id;
+
     const resources = await prisma.resource.findMany({
       orderBy: {
         createdAt: "desc",
@@ -96,9 +99,31 @@ export async function GET() {
             tag: { select: { id: true, name: true } },
           },
         },
+        likes: userId
+          ? {
+              where: {
+                userId,
+              },
+            }
+          : false,
+        _count: {
+          select: {
+            likes: true,
+          },
+        },
       },
     });
-    return NextResponse.json(resources, { status: 200 });
+
+    // Transform the data to include like information
+    const transformedResources = resources.map(resource => ({
+      ...resource,
+      bodySystems: resource.bodySystems as string[] || [],
+      mediaUrls: resource.mediaUrls as string[] || [],
+      likesCount: resource._count.likes,
+      isSupported: userId ? resource.likes.length > 0 : false,
+    }));
+
+    return NextResponse.json(transformedResources, { status: 200 });
   } catch (error) {
     console.error("Error fetching resources:", error);
     return NextResponse.json({ message: "Internal server error" }, { status: 500 });

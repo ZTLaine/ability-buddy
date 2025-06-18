@@ -3,7 +3,7 @@
 import type React from "react"
 
 import { useState } from "react"
-import { Button } from "@/components/ui/button"
+import { AppButton } from "@/components/ui/app-button"
 import { CustomInput } from "@/components/ui/custom-input"
 import { z } from "zod"
 
@@ -55,12 +55,13 @@ export function NewsletterSignup() {
             aria-label="Email address for newsletter"
             aria-describedby={error ? "email-error" : undefined}
           />
-          <Button
+          <AppButton
+            appVariant="primary"
             type="submit"
-            className="bg-[#4CAF50] hover:bg-[#4CAF50]/90 hover:shadow-lg hover:translate-y-[-2px] transition-all duration-300 text-white rounded-lg"
+            className="rounded-lg"
           >
             Subscribe
-          </Button>
+          </AppButton>
         </div>
         {error && (
           <p id="email-error" className="text-red-500 text-sm mt-1">

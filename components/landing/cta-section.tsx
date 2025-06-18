@@ -1,4 +1,4 @@
-import { Button } from "@/components/ui/button"
+import { AppButton } from "@/components/ui/app-button"
 import { NewsletterSignup } from "@/components/newsletter-signup"
 
 export function CTASection() {
@@ -12,15 +12,12 @@ export function CTASection() {
           Help build a comprehensive resource library that makes life easier for people with disabilities.
         </p>
         <div className="flex flex-col sm:flex-row gap-4 justify-center mb-12">
-          <Button className="bg-[#4CAF50] hover:bg-[#4CAF50]/90 hover:shadow-lg hover:translate-y-[-2px] transition-all duration-300 text-white text-lg py-6 px-8">
+          <AppButton appVariant="primary" className="text-lg py-6 px-8">
             Start Exploring Resources
-          </Button>
-          <Button
-            variant="outline"
-            className="border-[#B39DDB] text-[#00796B] hover:bg-[#B39DDB]/20 hover:border-[#B39DDB]/80 hover:shadow-lg hover:translate-y-[-2px] transition-all duration-300 text-lg py-6 px-8"
-          >
+          </AppButton>
+          <AppButton appVariant="secondary" className="text-lg py-6 px-8">
             Create Account to Contribute
-          </Button>
+          </AppButton>
         </div>
 
         <div className="max-w-md mx-auto">

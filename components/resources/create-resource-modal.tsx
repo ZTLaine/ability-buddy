@@ -4,7 +4,7 @@ import React, { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { createResourceSchema, type CreateResourceInput } from "@/lib/schemas/resource.schema";
-import { Button } from "@/components/ui/button";
+import { AppButton } from "@/components/ui/app-button";
 import {
   Dialog,
   DialogContent,
@@ -194,9 +194,9 @@ export function CreateResourceModal({ children, onResourceCreated }: CreateResou
                           }}
                           className="flex-grow"
                         />
-                        <Button type="button" variant="outline" onClick={handleAddTag} disabled={currentTags.length >= 10 || !tagInput.trim()}>
+                        <AppButton appVariant="secondary" type="button" onClick={handleAddTag} disabled={currentTags.length >= 10 || !tagInput.trim()}>
                           Add Tag
-                        </Button>
+                        </AppButton>
                       </div>
                       <FormDescription>
                         Add tags like "Mobility Aid", "Daily Living", "Technology" to help users find your resource.
@@ -353,16 +353,16 @@ export function CreateResourceModal({ children, onResourceCreated }: CreateResou
 
         <DialogFooter className="pt-4 border-t px-6 pb-6 flex-shrink-0">
           <DialogClose asChild>
-            <Button type="button" variant="outline" className="transition-all duration-200 hover:scale-105">Cancel</Button>
+            <AppButton appVariant="secondary" type="button">Cancel</AppButton>
           </DialogClose>
-          <Button 
+          <AppButton 
+            appVariant="primary"
             type="submit" 
             disabled={isSubmitting} 
-            className="bg-[#4CAF50] hover:bg-[#4CAF50]/90 text-white transition-all duration-200 hover:scale-105 hover:shadow-lg"
             onClick={handleSubmit(onSubmit)}
           >
             {isSubmitting ? "Creating..." : "Create Resource"}
-          </Button>
+          </AppButton>
         </DialogFooter>
       </DialogContent>
     </Dialog>

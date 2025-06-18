@@ -1,4 +1,4 @@
-import { Button } from "@/components/ui/button"
+import { AppButton } from "@/components/ui/app-button"
 import { FlowingAnimation } from "./flowing-animation"
 
 export function HeroSection() {
@@ -15,15 +15,12 @@ export function HeroSection() {
               A community-driven library of practical solutions, tools, and services
             </p>
             <div className="mt-8 flex flex-col sm:flex-row gap-4">
-              <Button className="bg-[#4CAF50] hover:bg-[#4CAF50]/90 hover:shadow-lg hover:translate-y-[-2px] transition-all duration-300 text-white text-lg py-6 px-8">
+              <AppButton appVariant="primary" className="text-lg py-6 px-8">
                 Explore Resources
-              </Button>
-              <Button
-                variant="outline"
-                className="border-[#B39DDB] text-[#00796B] hover:bg-[#B39DDB]/20 hover:border-[#B39DDB]/80 hover:shadow-lg hover:translate-y-[-2px] transition-all duration-300 text-lg py-6 px-8"
-              >
+              </AppButton>
+              <AppButton appVariant="secondary" className="text-lg py-6 px-8">
                 Share Your Finds
-              </Button>
+              </AppButton>
             </div>
           </div>
           <div className="relative">

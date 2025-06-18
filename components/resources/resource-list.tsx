@@ -4,9 +4,10 @@ import type { Resource } from "@/types/resources";
 
 interface ResourceListProps {
   resources: Resource[];
+  onResourceSelect?: (resourceId: string) => void;
 }
 
-export function ResourceList({ resources }: ResourceListProps) {
+export function ResourceList({ resources, onResourceSelect }: ResourceListProps) {
   if (!resources || resources.length === 0) {
     return (
       <div className="text-center py-12">
@@ -21,12 +22,14 @@ export function ResourceList({ resources }: ResourceListProps) {
       {resources.map((resource) => (
         <ResourceCard
           key={resource.id}
+          id={resource.id}
           title={resource.title}
           bodySystems={resource.bodySystems || []}
           tags={resource.tags.map(rt => rt.tag.name)}
           description={resource.description}
           likesCount={resource.likesCount || 0}
           isSupported={resource.isSupported || false}
+          onResourceSelect={onResourceSelect}
         />
       ))}
     </div>

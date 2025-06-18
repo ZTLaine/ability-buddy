@@ -1,8 +1,10 @@
 'use client';
 
 import React, { useState, useEffect, useCallback } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { ResourceList } from "./resource-list";
 import { ResourceFilterSidebar } from "./resource-filter-sidebar";
+import { ResourceDetailView } from "./resource-detail-view";
 import { masterBodySystems } from "@/lib/mock-data";
 import type { SelectedFilters, FilterSettings, Resource } from "@/types/resources";
 import { AddNewResourceButton } from "./add-new-resource-button";
@@ -20,6 +22,10 @@ const getUniqueBodySystemsFromResources = (resources: Resource[]): string[] => {
 };
 
 export function ResourcesPageLayout() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const selectedResourceId = searchParams.get('id');
+
   const [selectedFilters, setSelectedFilters] = useState<SelectedFilters>({
     bodySystems: [],
     tags: [],
@@ -135,6 +141,55 @@ export function ResourcesPageLayout() {
     fetchResources();
   }, [fetchResources]);
 
+  // Get the selected resource from our data
+  const selectedResource = selectedResourceId 
+    ? allResources.find(resource => resource.id === selectedResourceId)
+    : null;
+
+  // If we have a selected resource ID but can't find it in our data, fetch it individually
+  const [selectedResourceData, setSelectedResourceData] = useState<Resource | null>(null);
+  const [isLoadingSelectedResource, setIsLoadingSelectedResource] = useState(false);
+
+  useEffect(() => {
+    if (selectedResourceId && !selectedResource && !isLoadingSelectedResource) {
+      setIsLoadingSelectedResource(true);
+      fetch(`/api/resources/${selectedResourceId}`)
+        .then(response => response.json())
+        .then(data => {
+          setSelectedResourceData(data);
+        })
+        .catch(error => {
+          console.error('Error fetching selected resource:', error);
+          // If resource not found, redirect back to list
+          router.push('/resources');
+        })
+        .finally(() => {
+          setIsLoadingSelectedResource(false);
+        });
+    } else if (!selectedResourceId) {
+      setSelectedResourceData(null);
+    }
+  }, [selectedResourceId, selectedResource, isLoadingSelectedResource, router]);
+
+  // Use the selected resource from our data or the individually fetched one
+  const displayResource = selectedResource || selectedResourceData;
+
+  const handleResourceSelect = (resourceId: string) => {
+    // Update URL without page reload
+    const newUrl = `/resources?id=${resourceId}`;
+    router.push(newUrl, { scroll: false });
+  };
+
+  const handleBackToList = () => {
+    // Clear the selection and go back to list
+    router.push('/resources', { scroll: false });
+  };
+
+  const handleResourceDeleted = () => {
+    // Refresh the resources list
+    fetchResources();
+  };
+
   if (isLoading) {
     return <div className="text-center py-12">Loading resources...</div>;
   }
@@ -158,7 +213,20 @@ export function ResourcesPageLayout() {
       <div className="flex flex-col lg:flex-row gap-8">
         <div className="lg:w-3/4">
           <div className="bg-white/70 backdrop-blur-sm rounded-xl p-6 shadow-md border border-[#B39DDB]/20">
-            <ResourceList resources={filteredResources} />
+            {displayResource ? (
+              <ResourceDetailView 
+                resource={displayResource}
+                onBack={handleBackToList}
+                onResourceDeleted={handleResourceDeleted}
+              />
+            ) : isLoadingSelectedResource ? (
+              <div className="text-center py-12">Loading resource details...</div>
+            ) : (
+              <ResourceList 
+                resources={filteredResources} 
+                onResourceSelect={handleResourceSelect}
+              />
+            )}
           </div>
         </div>
         
