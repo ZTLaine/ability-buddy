@@ -1,0 +1,83 @@
+name: Bug Report
+description: Report a bug or technical issue with Ability Buddy
+title: "[Bug]: "
+labels: ["bug", "needs-triage"]
+assignees:
+  - your-username
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to report a bug! This helps make Ability Buddy better for everyone.
+        
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened?
+      description: A clear description of what the bug is and what you expected to happen instead.
+      placeholder: Describe the issue you encountered...
+    validations:
+      required: true
+      
+  - type: textarea
+    id: steps-to-reproduce
+    attributes:
+      label: Steps to reproduce
+      description: How can we reproduce this issue? Please be as specific as possible.
+      placeholder: |
+        1. Go to...
+        2. Click on...
+        3. Scroll down to...
+        4. See error...
+    validations:
+      required: true
+      
+  - type: dropdown
+    id: browsers
+    attributes:
+      label: What browser are you using?
+      multiple: true
+      options:
+        - Chrome
+        - Firefox
+        - Safari
+        - Edge
+        - Mobile Safari (iOS)
+        - Chrome Mobile (Android)
+        - Other
+    validations:
+      required: true
+      
+  - type: dropdown
+    id: device-type
+    attributes:
+      label: What type of device?
+      options:
+        - Desktop/Laptop
+        - Mobile Phone
+        - Tablet
+        - Other
+    validations:
+      required: true
+      
+  - type: textarea
+    id: accessibility-impact
+    attributes:
+      label: Does this affect accessibility?
+      description: If this issue impacts accessibility features or makes the site harder to use with assistive technologies, please describe how.
+      placeholder: This affects screen readers by..., This makes it hard to navigate with keyboard because..., etc.
+      
+  - type: textarea
+    id: additional-context
+    attributes:
+      label: Additional context
+      description: Add any other context about the problem here, including screenshots if helpful.
+      
+  - type: checkboxes
+    id: terms
+    attributes:
+      label: Code of Conduct
+      description: By submitting this issue, you agree to follow our community guidelines
+      options:
+        - label: I agree to be respectful and constructive in my communication
+          required: true 

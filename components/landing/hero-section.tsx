@@ -15,11 +15,11 @@ export function HeroSection() {
               A community-driven library of practical solutions, tools, and services
             </p>
             <div className="mt-8 flex flex-col sm:flex-row gap-4">
-              <AppButton appVariant="primary" className="text-lg py-6 px-8">
-                Explore Resources
+              <AppButton appVariant="primary" className="text-lg py-6 px-8" asChild>
+                <a href="/resources">Explore Resources</a>
               </AppButton>
-              <AppButton appVariant="secondary" className="text-lg py-6 px-8">
-                Share Your Finds
+              <AppButton appVariant="secondary" className="text-lg py-6 px-8" asChild>
+                <a href="/resources">Share Your Finds</a>
               </AppButton>
             </div>
           </div>

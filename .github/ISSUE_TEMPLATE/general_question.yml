@@ -1,0 +1,52 @@
+name: General Question
+description: Ask a question about Ability Buddy
+title: "[Question]: "
+labels: ["question"]
+assignees:
+  - your-username
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for your question! This helps me understand how to make Ability Buddy better and clearer for everyone.
+        
+        **Note:** For personal questions or feedback, you might prefer to email me directly at ztlaine@gmail.com
+        
+  - type: textarea
+    id: question
+    attributes:
+      label: What's your question?
+      description: Ask anything about Ability Buddy, how it works, or how to use it.
+      placeholder: I'm wondering about...
+    validations:
+      required: true
+      
+  - type: dropdown
+    id: question-type
+    attributes:
+      label: What type of question is this?
+      options:
+        - How do I use a feature?
+        - How does something work?
+        - Why was something designed this way?
+        - Can I contribute or help?
+        - Is there a way to...?
+        - Other
+    validations:
+      required: true
+      
+  - type: textarea
+    id: context
+    attributes:
+      label: Additional context
+      description: Any additional information that might help answer your question.
+      placeholder: I was trying to... / I noticed that... / I'm using...
+      
+  - type: checkboxes
+    id: terms
+    attributes:
+      label: Code of Conduct
+      description: By submitting this issue, you agree to follow our community guidelines
+      options:
+        - label: I agree to be respectful and constructive in my communication
+          required: true 

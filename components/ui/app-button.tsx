@@ -11,10 +11,10 @@ interface AppButtonProps extends Omit<ButtonProps, "variant"> {
 const appButtonVariants = {
   primary: {
     base: "bg-[#4CAF50] text-white border-transparent",
-    hover: "hover:bg-[#4CAF50]/90",
+    hover: "hover:bg-[#4CAF50]/90 hover:text-white",
     disabled: "disabled:bg-[#4CAF50]/50 disabled:text-white/70",
     // High contrast mode support
-    highContrast: "contrast-more:bg-green-600 contrast-more:border-2 contrast-more:border-green-800",
+    highContrast: "contrast-more:bg-green-600 contrast-more:border-2 contrast-more:border-green-800 contrast-more:text-white contrast-more:hover:bg-green-700 contrast-more:hover:text-white",
   },
   secondary: {
     base: "border-[#B39DDB] text-[#00796B] bg-transparent",

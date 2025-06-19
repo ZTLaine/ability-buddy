@@ -1,5 +1,4 @@
 import { AppButton } from "@/components/ui/app-button"
-import { NewsletterSignup } from "@/components/newsletter-signup"
 
 export function CTASection() {
   return (
@@ -11,20 +10,13 @@ export function CTASection() {
         <p className="text-xl text-gray-700 mb-8 max-w-2xl mx-auto">
           Help build a comprehensive resource library that makes life easier for people with disabilities.
         </p>
-        <div className="flex flex-col sm:flex-row gap-4 justify-center mb-12">
-          <AppButton appVariant="primary" className="text-lg py-6 px-8">
-            Start Exploring Resources
+        <div className="flex flex-col sm:flex-row gap-4 justify-center">
+          <AppButton appVariant="primary" className="text-lg py-6 px-8" asChild>
+            <a href="/resources">Start Exploring Resources</a>
           </AppButton>
-          <AppButton appVariant="secondary" className="text-lg py-6 px-8">
-            Create Account to Contribute
+          <AppButton appVariant="secondary" className="text-lg py-6 px-8" asChild>
+            <a href="/resources">Create Account to Contribute</a>
           </AppButton>
-        </div>
-
-        <div className="max-w-md mx-auto">
-          <h3 className="text-xl font-semibold text-[#00796B] mb-4">
-            Stay Updated on New Resources
-          </h3>
-          <NewsletterSignup />
         </div>
       </div>
     </section>

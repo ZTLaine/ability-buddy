@@ -20,7 +20,7 @@ export function Footer() {
   return (
     <footer className="bg-[#00796B] text-white py-12">
       <div className="container mx-auto px-4">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           <div>
             <div className="flex items-center gap-2 mb-4">
               <LeafIcon className="h-6 w-6 text-white" />
@@ -33,28 +33,14 @@ export function Footer() {
           <div>
             <h3 className="text-lg font-semibold mb-4">Resources</h3>
             <ul className="space-y-2">
-              <FooterLink href="/categories">Categories</FooterLink>
-              <FooterLink href="/body-systems">Body Systems</FooterLink>
-              <FooterLink href="/top-rated">Top Rated</FooterLink>
-              <FooterLink href="/recently-added">Recently Added</FooterLink>
-            </ul>
-          </div>
-          <div>
-            <h3 className="text-lg font-semibold mb-4">About</h3>
-            <ul className="space-y-2">
-              <FooterLink href="/mission">Our Mission</FooterLink>
-              <FooterLink href="/team">Team</FooterLink>
-              <FooterLink href="/privacy">Privacy Policy</FooterLink>
-              <FooterLink href="/terms">Terms of Service</FooterLink>
+              <FooterLink href="/resources">Browse Resources</FooterLink>
             </ul>
           </div>
           <div>
             <h3 className="text-lg font-semibold mb-4">Connect</h3>
             <ul className="space-y-2">
-              <FooterLink href="/contact">Contact Us</FooterLink>
-              <FooterLink href="/feedback">Feedback</FooterLink>
-              <FooterLink href="https://twitter.com/abilitybuddy">Twitter</FooterLink>
-              <FooterLink href="https://facebook.com/abilitybuddy">Facebook</FooterLink>
+              <FooterLink href="/about">About</FooterLink>
+              <FooterLink href="/contact">Contact & Feedback</FooterLink>
             </ul>
           </div>
         </div>
