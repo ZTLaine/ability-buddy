@@ -154,21 +154,80 @@ button {
 /* Modal and Accordion Animations */
 .animate-accordion {
   --accordion-animation-duration: 300ms;
+  --modal-height-duration: 250ms;
 }
 
+/* Modal height transition */
+.modal-height-transition {
+  transition: height var(--modal-height-duration) ease-out,
+              min-height var(--modal-height-duration) ease-out,
+              max-height var(--modal-height-duration) ease-out;
+}
+
+/* Accordion content animations with staggered timing */
 .animate-accordion-content {
   animation: accordion-fade-in var(--accordion-animation-duration) ease-out;
+  animation-delay: calc(var(--modal-height-duration) * 0.3); /* Start during height transition */
+}
+
+/* Accordion trigger animations */
+.accordion-trigger-smooth {
+  transition: all 200ms ease-out;
+}
+
+/* Smooth height transitions for accordion items */
+.accordion-item-smooth {
+  transition: border-color 200ms ease-out;
+}
+
+/* Main accordion container with height transitions */
+.accordion-container {
+  transition: height var(--modal-height-duration) ease-out;
 }
 
 @keyframes accordion-fade-in {
   from {
     opacity: 0;
-    transform: translateY(-10px);
+    transform: translateY(-8px);
   }
   to {
     opacity: 1;
     transform: translateY(0);
   }
+}
+
+/* Enhanced modal container transitions */
+.modal-container-smooth {
+  transition: all var(--modal-height-duration) ease-out;
+}
+
+/* Target Radix Dialog Content directly for height transitions */
+[data-radix-dialog-content] {
+  transition: height var(--modal-height-duration) ease-out,
+              min-height var(--modal-height-duration) ease-out,
+              max-height var(--modal-height-duration) ease-out,
+              transform var(--modal-height-duration) ease-out !important;
+}
+
+/* Smooth height transitions for the actual modal window */
+.modal-smooth-height {
+  --modal-height-duration: 250ms;
+  transition: height var(--modal-height-duration) ease-out,
+              min-height var(--modal-height-duration) ease-out,
+              max-height var(--modal-height-duration) ease-out;
+  will-change: height;
+}
+
+/* Override Radix's default transitions */
+[data-radix-dialog-overlay] {
+  transition: opacity 200ms ease-out !important;
+}
+
+/* Force height transitions on dialog content */
+.dialog-content-transition {
+  transition: all var(--modal-height-duration) ease-out !important;
+  height: auto;
+  min-height: auto;
 }
 
 /* Smooth scrollbar styling */

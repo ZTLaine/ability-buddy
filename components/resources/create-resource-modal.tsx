@@ -4,7 +4,7 @@ import React, { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { createResourceSchema, type CreateResourceInput } from "@/lib/schemas/resource.schema";
-import { AppButton } from "@/components/ui/app-button";
+import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
@@ -32,6 +32,7 @@ export function CreateResourceModal({ children, onResourceCreated }: CreateResou
   const { data: session } = useSession();
   const [isOpen, setIsOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [modalHeight, setModalHeight] = useState<string>("auto");
 
   const form = useForm<CreateResourceInput>({
     resolver: zodResolver(createResourceSchema),
@@ -112,25 +113,59 @@ export function CreateResourceModal({ children, onResourceCreated }: CreateResou
     if (!isOpen) {
       reset();
       setTagInput("");
+      setModalHeight("auto");
     }
   }, [isOpen, reset]);
+
+  // Track accordion state changes to adjust modal height
+  useEffect(() => {
+    if (isOpen) {
+      // Small delay to allow DOM to update before measuring
+      const timeoutId = setTimeout(() => {
+        const dialogContent = document.querySelector('[data-radix-dialog-content]') as HTMLElement;
+        if (dialogContent) {
+          const currentHeight = dialogContent.scrollHeight;
+          setModalHeight(`${currentHeight}px`);
+        }
+      }, 50);
+
+      return () => clearTimeout(timeoutId);
+    }
+  }, [isOpen]);
 
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>{children}</DialogTrigger>
-      <DialogContent className="sm:max-w-[700px] max-h-[85vh] bg-white border border-[#B39DDB]/30 shadow-lg rounded-lg overflow-hidden flex flex-col">
+      <DialogContent 
+        className="sm:max-w-[700px] max-h-[85vh] bg-white border border-[#B39DDB]/30 shadow-lg rounded-lg overflow-hidden flex flex-col modal-smooth-height dialog-content-transition"
+        style={{ height: modalHeight }}
+      >
         <DialogHeader className="pb-2 px-6 pt-6 flex-shrink-0">
           <DialogTitle className="text-2xl font-bold text-[#00796B]">Create New Resource</DialogTitle>
         </DialogHeader>
         
-        <div className="overflow-y-auto flex-1 px-6 py-2 scrollbar-thin scrollbar-thumb-[#B39DDB]/30 scrollbar-track-transparent">
+        <div className="overflow-y-auto flex-1 px-6 py-2 scrollbar-thin scrollbar-thumb-[#B39DDB]/30 scrollbar-track-transparent modal-height-transition">
           <Form {...form}>
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-              <Accordion type="multiple" defaultValue={["basic-info", "tags-categories"]} className="w-full animate-accordion">
+              <Accordion 
+                type="multiple" 
+                defaultValue={["basic-info", "tags-categories"]} 
+                className="w-full animate-accordion accordion-container"
+                onValueChange={() => {
+                  // Update modal height when accordion values change
+                  setTimeout(() => {
+                    const dialogContent = document.querySelector('[data-radix-dialog-content]') as HTMLElement;
+                    if (dialogContent) {
+                      const newHeight = dialogContent.scrollHeight;
+                      setModalHeight(`${newHeight}px`);
+                    }
+                  }, 50);
+                }}
+              >
                 
                 {/* Basic Information Section */}
-                <AccordionItem value="basic-info" className="border-[#4CAF50]/30 transition-all duration-300">
-                  <AccordionTrigger className="text-lg font-medium text-[#00796B] hover:text-[#4CAF50] group transition-all duration-200 hover:no-underline">
+                <AccordionItem value="basic-info" className="border-[#4CAF50]/30 accordion-item-smooth">
+                  <AccordionTrigger className="text-lg font-medium text-[#00796B] hover:text-[#4CAF50] group accordion-trigger-smooth hover:no-underline">
                     <span className="group-hover:underline decoration-[#4CAF50]/40 decoration-2 underline-offset-4 flex items-center transition-all duration-200">
                       <span className="w-2 h-2 rounded-full bg-[#4CAF50] mr-2 transition-all duration-200 group-hover:scale-125"></span>
                       Basic Information <span className="text-red-500 ml-1">*</span>
@@ -171,8 +206,8 @@ export function CreateResourceModal({ children, onResourceCreated }: CreateResou
                 </AccordionItem>
 
                 {/* Tags & Categories Section */}
-                <AccordionItem value="tags-categories" className="border-[#B39DDB]/30 transition-all duration-300">
-                  <AccordionTrigger className="text-lg font-medium text-[#00796B] hover:text-[#4CAF50] group transition-all duration-200 hover:no-underline">
+                <AccordionItem value="tags-categories" className="border-[#B39DDB]/30 accordion-item-smooth">
+                  <AccordionTrigger className="text-lg font-medium text-[#00796B] hover:text-[#4CAF50] group accordion-trigger-smooth hover:no-underline">
                     <span className="group-hover:underline decoration-[#B39DDB]/40 decoration-2 underline-offset-4 flex items-center transition-all duration-200">
                       <span className="w-2 h-2 rounded-full bg-[#B39DDB] mr-2 transition-all duration-200 group-hover:scale-125"></span>
                       Tags & Categories <span className="text-red-500 ml-1">*</span>
@@ -194,9 +229,9 @@ export function CreateResourceModal({ children, onResourceCreated }: CreateResou
                           }}
                           className="flex-grow"
                         />
-                        <AppButton appVariant="secondary" type="button" onClick={handleAddTag} disabled={currentTags.length >= 10 || !tagInput.trim()}>
+                        <Button type="button" variant="outline" onClick={handleAddTag} disabled={currentTags.length >= 10 || !tagInput.trim()}>
                           Add Tag
-                        </AppButton>
+                        </Button>
                       </div>
                       <FormDescription>
                         Add tags like "Mobility Aid", "Daily Living", "Technology" to help users find your resource.
@@ -267,8 +302,8 @@ export function CreateResourceModal({ children, onResourceCreated }: CreateResou
                 </AccordionItem>
 
                 {/* Links & Media Section */}
-                <AccordionItem value="links-media" className="border-[#03A9F4]/30 transition-all duration-300">
-                  <AccordionTrigger className="text-lg font-medium text-[#00796B] hover:text-[#4CAF50] group transition-all duration-200 hover:no-underline">
+                <AccordionItem value="links-media" className="border-[#03A9F4]/30 accordion-item-smooth">
+                  <AccordionTrigger className="text-lg font-medium text-[#00796B] hover:text-[#4CAF50] group accordion-trigger-smooth hover:no-underline">
                     <span className="group-hover:underline decoration-[#03A9F4]/40 decoration-2 underline-offset-4 flex items-center transition-all duration-200">
                       <span className="w-2 h-2 rounded-full bg-[#03A9F4] mr-2 transition-all duration-200 group-hover:scale-125"></span>
                       Links & Media
@@ -319,8 +354,8 @@ export function CreateResourceModal({ children, onResourceCreated }: CreateResou
                 </AccordionItem>
 
                 {/* Advanced Section */}
-                <AccordionItem value="advanced" className="border-[#FF9800]/30 transition-all duration-300">
-                  <AccordionTrigger className="text-lg font-medium text-[#00796B] hover:text-[#4CAF50] group transition-all duration-200 hover:no-underline">
+                <AccordionItem value="advanced" className="border-[#FF9800]/30 accordion-item-smooth">
+                  <AccordionTrigger className="text-lg font-medium text-[#00796B] hover:text-[#4CAF50] group accordion-trigger-smooth hover:no-underline">
                     <span className="group-hover:underline decoration-[#FF9800]/40 decoration-2 underline-offset-4 flex items-center transition-all duration-200">
                       <span className="w-2 h-2 rounded-full bg-[#FF9800] mr-2 transition-all duration-200 group-hover:scale-125"></span>
                       Advanced Options
@@ -353,16 +388,16 @@ export function CreateResourceModal({ children, onResourceCreated }: CreateResou
 
         <DialogFooter className="pt-4 border-t px-6 pb-6 flex-shrink-0">
           <DialogClose asChild>
-            <AppButton appVariant="secondary" type="button">Cancel</AppButton>
+            <Button type="button" variant="outline" className="transition-all duration-200 hover:scale-105">Cancel</Button>
           </DialogClose>
-          <AppButton 
-            appVariant="primary"
+          <Button 
             type="submit" 
             disabled={isSubmitting} 
+            className="bg-[#4CAF50] hover:bg-[#4CAF50]/90 text-white transition-all duration-200 hover:scale-105 hover:shadow-lg"
             onClick={handleSubmit(onSubmit)}
           >
             {isSubmitting ? "Creating..." : "Create Resource"}
-          </AppButton>
+          </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

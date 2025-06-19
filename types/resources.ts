@@ -24,14 +24,13 @@ export interface FilterSettings {
 }
 
 export interface ResourceCardProps {
-  id: string;
   title: string;
   bodySystems: string[];
   tags: string[];
   description: string;
   likesCount?: number;
   isSupported?: boolean; // Whether the current user has supported this resource
-  onResourceSelect?: (resourceId: string) => void;
+  onClick?: () => void;
 }
 
 export interface Author {

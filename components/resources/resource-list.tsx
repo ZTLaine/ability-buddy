@@ -22,14 +22,13 @@ export function ResourceList({ resources, onResourceSelect }: ResourceListProps)
       {resources.map((resource) => (
         <ResourceCard
           key={resource.id}
-          id={resource.id}
           title={resource.title}
           bodySystems={resource.bodySystems || []}
           tags={resource.tags.map(rt => rt.tag.name)}
           description={resource.description}
           likesCount={resource.likesCount || 0}
           isSupported={resource.isSupported || false}
-          onResourceSelect={onResourceSelect}
+          onClick={() => onResourceSelect?.(resource.id)}
         />
       ))}
     </div>
