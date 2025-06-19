@@ -21,6 +21,7 @@ export const authOptions: NextAuthOptions = {
         GoogleProvider({
         clientId: process.env.GOOGLE_CLIENT_ID!,
         clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
+        allowDangerousEmailAccountLinking: true, // Allow linking accounts with same email
     }),
     CredentialsProvider({
         name: "Credentials",
@@ -91,11 +92,6 @@ export const authOptions: NextAuthOptions = {
             }
             return token;
         },
-    },
-    pages: {
-        signIn: '/signin', // We will create a custom sign-in page/modal later
-        // error: '/auth/error', // Custom error page (optional)
-        // newUser: '/auth/new-user' // New users will be created via the credentials provider or OAuth
     },
     secret: process.env.NEXTAUTH_SECRET,
     // debug: process.env.NODE_ENV === 'development', // Enable debug messages in development
