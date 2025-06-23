@@ -56,7 +56,6 @@ export const masterBodySystems = [
   "Respiratory",
   "Cardiovascular",
   "Digestive",
-  "Integumentary",
   "Endocrine",
   "Immune",
   "Genitourinary",
