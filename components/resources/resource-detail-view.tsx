@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { AppButton } from "@/components/ui/app-button";
 import { TagTooltip } from "@/components/tag-tooltip";
+import { CreateResourceModal } from "./create-resource-modal";
 
 import { Sprout, Flower, Edit, Trash2, ArrowLeft, ExternalLink } from "lucide-react";
 import { toast } from "sonner";
@@ -71,9 +72,9 @@ export function ResourceDetailView({ resource, onBack, onResourceDeleted }: Reso
     }
   };
 
-  const handleEdit = () => {
-    // TODO: Implement edit modal or navigate to edit page
-    toast.info("Edit functionality coming soon!");
+  const handleResourceUpdated = () => {
+    // Trigger a re-fetch from the parent component
+    onResourceDeleted?.();
   };
 
   const handleDelete = async () => {
@@ -117,14 +118,19 @@ export function ResourceDetailView({ resource, onBack, onResourceDeleted }: Reso
         {/* Action Buttons */}
         {isOwner && (
           <div className="flex gap-2">
-            <AppButton
-              appVariant="secondary"
-              size="sm"
-              onClick={handleEdit}
+            <CreateResourceModal 
+              resource={resource} 
+              mode="edit" 
+              onResourceCreated={handleResourceUpdated}
             >
-              <Edit className="h-4 w-4 mr-2" />
-              <span className="hidden sm:inline">Edit</span>
-            </AppButton>
+              <AppButton
+                appVariant="secondary"
+                size="sm"
+              >
+                <Edit className="h-4 w-4 mr-2" />
+                <span className="hidden sm:inline">Edit</span>
+              </AppButton>
+            </CreateResourceModal>
             <AppButton
               appVariant="destructive"
               size="sm"

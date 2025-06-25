@@ -190,6 +190,11 @@ export function ResourcesPageLayout() {
     fetchResources();
   };
 
+  const handleResourceUpdated = () => {
+    // Refresh the resources list
+    fetchResources();
+  };
+
   if (isLoading) {
     return <div className="text-center py-12">Loading resources...</div>;
   }
@@ -217,7 +222,7 @@ export function ResourcesPageLayout() {
               <ResourceDetailView 
                 resource={displayResource}
                 onBack={handleBackToList}
-                onResourceDeleted={handleResourceDeleted}
+                onResourceDeleted={handleResourceUpdated}
               />
             ) : isLoadingSelectedResource ? (
               <div className="text-center py-12">Loading resource details...</div>

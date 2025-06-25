@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { createResourceSchema, type CreateResourceInput } from "@/lib/schemas/resource.schema";
@@ -22,17 +22,22 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { useSession } from "next-auth/react";
 import { toast } from "@/components/ui/use-toast";
 import { masterBodySystems } from "@/lib/mock-data";
+import type { Resource } from "@/types/resources";
 
 interface CreateResourceModalProps {
   children: React.ReactNode;
   onResourceCreated?: () => void;
+  resource?: Resource; // Optional resource for editing
+  mode?: 'create' | 'edit';
 }
 
-export function CreateResourceModal({ children, onResourceCreated }: CreateResourceModalProps) {
+export function CreateResourceModal({ children, onResourceCreated, resource, mode = 'create' }: CreateResourceModalProps) {
   const { data: session } = useSession();
   const [isOpen, setIsOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [modalHeight, setModalHeight] = useState<string>("auto");
+
+  const isEditMode = mode === 'edit' && resource;
 
   const form = useForm<CreateResourceInput>({
     resolver: zodResolver(createResourceSchema),
@@ -40,6 +45,7 @@ export function CreateResourceModal({ children, onResourceCreated }: CreateResou
       title: "",
       description: "",
       tags: [],
+      bodySystems: [],
       mediaUrls: [],
       externalLink: "",
       creationInstructions: "",
@@ -49,6 +55,76 @@ export function CreateResourceModal({ children, onResourceCreated }: CreateResou
   const { handleSubmit, formState: { errors }, reset, watch, control } = form;
   const currentTags = watch("tags", []);
   const [tagInput, setTagInput] = useState("");
+  
+  // State for media URLs display value
+  const [mediaUrlsDisplayValue, setMediaUrlsDisplayValue] = useState("");
+  const currentMediaUrls = watch("mediaUrls", []);
+
+  // Store original values for change detection
+  const [originalValues, setOriginalValues] = useState<CreateResourceInput | null>(null);
+
+  // Watch all form values for change detection
+  const currentValues = watch();
+
+  // Function to compare arrays (order-independent)
+  const arraysEqual = (a: string[] | undefined, b: string[] | undefined): boolean => {
+    if (!a && !b) return true;
+    if (!a || !b) return false;
+    if (a.length !== b.length) return false;
+    const sortedA = [...a].sort();
+    const sortedB = [...b].sort();
+    return sortedA.every((val, index) => val === sortedB[index]);
+  };
+
+  // Function to check if values have changed
+  const hasChanges = useMemo(() => {
+    if (!isEditMode || !originalValues) return true; // Always allow creation or if no original values
+
+    const current = currentValues;
+    const original = originalValues;
+
+    return (
+      current.title !== original.title ||
+      current.description !== original.description ||
+      current.externalLink !== original.externalLink ||
+      current.creationInstructions !== original.creationInstructions ||
+      !arraysEqual(current.tags, original.tags) ||
+      !arraysEqual(current.bodySystems, original.bodySystems) ||
+      !arraysEqual(current.mediaUrls, original.mediaUrls)
+    );
+  }, [currentValues, originalValues, isEditMode]);
+
+  // Pre-populate form when editing
+  useEffect(() => {
+    if (isEditMode && isOpen) {
+      const existingTags = resource.tags.map(rt => rt.tag.name);
+      const existingMediaUrls = Array.isArray(resource.mediaUrls) ? resource.mediaUrls : [];
+      
+      const resourceValues: CreateResourceInput = {
+        title: resource.title,
+        description: resource.description,
+        tags: existingTags,
+        bodySystems: resource.bodySystems || [],
+        mediaUrls: existingMediaUrls,
+        externalLink: resource.externalLink || "",
+        creationInstructions: resource.creationInstructions || "",
+      };
+
+      // Set form values
+      form.setValue("title", resourceValues.title);
+      form.setValue("description", resourceValues.description);
+      form.setValue("tags", resourceValues.tags);
+      form.setValue("bodySystems", resourceValues.bodySystems);
+      form.setValue("mediaUrls", resourceValues.mediaUrls);
+      form.setValue("externalLink", resourceValues.externalLink);
+      form.setValue("creationInstructions", resourceValues.creationInstructions);
+      
+      // Store original values for comparison
+      setOriginalValues(resourceValues);
+      
+      setMediaUrlsDisplayValue(existingMediaUrls.join(', '));
+    }
+  }, [isEditMode, resource, isOpen, form]);
 
   const handleAddTag = () => {
     const newTag = tagInput.trim();
@@ -68,6 +144,16 @@ export function CreateResourceModal({ children, onResourceCreated }: CreateResou
     form.setValue("tags", currentTags.filter(tag => tag !== tagToRemove));
   };
 
+  const handleMediaUrlsChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setMediaUrlsDisplayValue(e.target.value);
+  };
+
+  const handleMediaUrlsBlur = () => {
+    // Process the URLs when user finishes typing
+    const urls = mediaUrlsDisplayValue.split(',').map(url => url.trim()).filter(url => url);
+    form.setValue("mediaUrls", urls);
+  };
+
   const onSubmit = async (data: CreateResourceInput) => {
     if (!session) {
       toast({
@@ -77,28 +163,42 @@ export function CreateResourceModal({ children, onResourceCreated }: CreateResou
       });
       return;
     }
+
+    // Check for changes in edit mode
+    if (isEditMode && !hasChanges) {
+      toast({
+        title: "No Changes Detected",
+        description: "You haven't made any changes to this resource.",
+        variant: "default",
+      });
+      return;
+    }
+
     setIsSubmitting(true);
     try {
-      const response = await fetch("/api/resources", {
-        method: "POST",
+      const url = isEditMode ? `/api/resources/${resource.id}` : "/api/resources";
+      const method = isEditMode ? "PUT" : "POST";
+      
+      const response = await fetch(url, {
+        method,
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data),
       });
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.message || "Failed to create resource");
+        throw new Error(errorData.message || errorData.error || `Failed to ${isEditMode ? 'update' : 'create'} resource`);
       }
 
       toast({
-        title: "Resource Created!",
-        description: "Your new resource has been added successfully.",
+        title: `Resource ${isEditMode ? 'Updated' : 'Created'}!`,
+        description: `Your resource has been ${isEditMode ? 'updated' : 'added'} successfully.`,
       });
       reset();
       setIsOpen(false);
       onResourceCreated?.();
     } catch (error) {
-      console.error("Error creating resource:", error);
+      console.error(`Error ${isEditMode ? 'updating' : 'creating'} resource:`, error);
       toast({
         title: "Error",
         description: (error as Error).message || "An unexpected error occurred.",
@@ -109,11 +209,20 @@ export function CreateResourceModal({ children, onResourceCreated }: CreateResou
     }
   };
   
+  // Sync media URLs display value with form value
+  useEffect(() => {
+    if (Array.isArray(currentMediaUrls)) {
+      setMediaUrlsDisplayValue(currentMediaUrls.join(', '));
+    }
+  }, [currentMediaUrls]);
+
   useEffect(() => {
     if (!isOpen) {
       reset();
       setTagInput("");
+      setMediaUrlsDisplayValue("");
       setModalHeight("auto");
+      setOriginalValues(null);
     }
   }, [isOpen, reset]);
 
@@ -141,7 +250,18 @@ export function CreateResourceModal({ children, onResourceCreated }: CreateResou
         style={{ height: modalHeight }}
       >
         <DialogHeader className="pb-2 px-6 pt-6 flex-shrink-0">
-          <DialogTitle className="text-2xl font-bold text-[#00796B]">Create New Resource</DialogTitle>
+          <DialogTitle className="text-2xl font-bold text-[#00796B]">
+            {isEditMode ? 'Edit Resource' : 'Create New Resource'}
+          </DialogTitle>
+          {isEditMode && (
+            <p className="text-sm text-gray-600 mt-1">
+              {hasChanges ? (
+                <span className="text-amber-600">You have unsaved changes</span>
+              ) : (
+                <span className="text-gray-500">No changes made</span>
+              )}
+            </p>
+          )}
         </DialogHeader>
         
         <div className="overflow-y-auto flex-1 px-6 py-2 scrollbar-thin scrollbar-thumb-[#B39DDB]/30 scrollbar-track-transparent modal-height-transition">
@@ -334,13 +454,11 @@ export function CreateResourceModal({ children, onResourceCreated }: CreateResou
                         <FormItem>
                           <FormLabel>Media URLs (Optional)</FormLabel>
                           <FormControl>
-                            <Input placeholder="e.g., https://image.com/img.png (separate multiple with commas)" 
-                                   {...field} 
-                                   onChange={(e) => {
-                                     const urls = e.target.value.split(',').map(url => url.trim()).filter(url => url);
-                                     field.onChange(urls);
-                                   }}
-                                   value={Array.isArray(field.value) ? field.value.join(', ') : ''} 
+                            <Input 
+                              placeholder="e.g., https://image.com/img.png (separate multiple with commas)" 
+                              value={mediaUrlsDisplayValue}
+                              onChange={handleMediaUrlsChange}
+                              onBlur={handleMediaUrlsBlur}
                             />
                           </FormControl>
                           <FormDescription>
@@ -392,11 +510,15 @@ export function CreateResourceModal({ children, onResourceCreated }: CreateResou
           </DialogClose>
           <Button 
             type="submit" 
-            disabled={isSubmitting} 
-            className="bg-[#4CAF50] hover:bg-[#4CAF50]/90 text-white transition-all duration-200 hover:scale-105 hover:shadow-lg"
+            disabled={isSubmitting || (isEditMode && !hasChanges)} 
+            className={`transition-all duration-200 hover:scale-105 hover:shadow-lg ${
+              isEditMode && !hasChanges 
+                ? 'bg-gray-400 hover:bg-gray-400 cursor-not-allowed' 
+                : 'bg-[#4CAF50] hover:bg-[#4CAF50]/90'
+            } text-white`}
             onClick={handleSubmit(onSubmit)}
           >
-            {isSubmitting ? "Creating..." : "Create Resource"}
+            {isSubmitting ? (isEditMode ? "Updating..." : "Creating...") : (isEditMode ? "Update Resource" : "Create Resource")}
           </Button>
         </DialogFooter>
       </DialogContent>

@@ -7,6 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { TagTooltip } from "@/components/tag-tooltip";
 import { LeafRating } from "@/components/leaf-rating";
+import { CreateResourceModal } from "./create-resource-modal";
 import { Sprout, Flower, Edit, Trash2, ArrowLeft, ExternalLink } from "lucide-react";
 import { toast } from "sonner";
 import type { Resource } from "@/types/resources";
@@ -70,9 +71,9 @@ export function ResourceDetailClient({ resource, currentUserId, isOwner }: Resou
     }
   };
 
-  const handleEdit = () => {
-    // TODO: Implement edit modal or navigate to edit page
-    toast.info("Edit functionality coming soon!");
+  const handleResourceUpdated = () => {
+    // Refresh the page to show updated resource
+    router.refresh();
   };
 
   const handleDelete = async () => {
@@ -139,14 +140,19 @@ export function ResourceDetailClient({ resource, currentUserId, isOwner }: Resou
             {/* Action Buttons */}
             {isOwner && (
               <div className="flex gap-2 ml-4">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={handleEdit}
+                <CreateResourceModal 
+                  resource={resource} 
+                  mode="edit" 
+                  onResourceCreated={handleResourceUpdated}
                 >
-                  <Edit className="h-4 w-4 mr-2" />
-                  Edit
-                </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                  >
+                    <Edit className="h-4 w-4 mr-2" />
+                    Edit
+                  </Button>
+                </CreateResourceModal>
                 <Button
                   variant="destructive"
                   size="sm"
