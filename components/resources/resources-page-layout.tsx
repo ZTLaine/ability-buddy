@@ -8,6 +8,13 @@ import { ResourceDetailView } from "./resource-detail-view";
 import { masterBodySystems } from "@/lib/mock-data";
 import type { SelectedFilters, FilterSettings, Resource } from "@/types/resources";
 import { AddNewResourceButton } from "./add-new-resource-button";
+import { Button } from "@/components/ui/button";
+import { 
+  DropdownMenu, 
+  DropdownMenuContent, 
+  DropdownMenuTrigger 
+} from "@/components/ui/dropdown-menu";
+import { FilterIcon } from "lucide-react";
 
 // Helper to get unique tags from API data
 const getUniqueTagsFromResources = (resources: Resource[]): string[] => {
@@ -40,6 +47,7 @@ export function ResourcesPageLayout() {
   const [filteredResources, setFilteredResources] = useState<Resource[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isMobileFilterOpen, setIsMobileFilterOpen] = useState(false);
 
   // Use masterBodySystems for body systems filter options
   const uniqueBodySystemsForFilter = masterBodySystems;
@@ -69,6 +77,19 @@ export function ResourcesPageLayout() {
   useEffect(() => {
     fetchResources();
   }, [fetchResources]);
+
+  // Close mobile filter dropdown when screen expands to desktop size
+  useEffect(() => {
+    const handleResize = () => {
+      // lg breakpoint is 1024px in Tailwind
+      if (window.innerWidth >= 1024 && isMobileFilterOpen) {
+        setIsMobileFilterOpen(false);
+      }
+    };
+
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, [isMobileFilterOpen]);
 
   const handleTagClick = (type: keyof SelectedFilters, tag: string) => {
     setSelectedFilters(prevFilters => {
@@ -195,6 +216,11 @@ export function ResourcesPageLayout() {
     fetchResources();
   };
 
+  // Get count of active filters for mobile button
+  const getActiveFilterCount = () => {
+    return selectedFilters.bodySystems.length + selectedFilters.tags.length;
+  };
+
   if (isLoading) {
     return <div className="text-center py-12">Loading resources...</div>;
   }
@@ -217,6 +243,46 @@ export function ResourcesPageLayout() {
       
       <div className="flex flex-col lg:flex-row gap-8">
         <div className="lg:w-3/4">
+          {/* Mobile Filter Button - Only show when not viewing a specific resource */}
+          {!displayResource && (
+            <div className="lg:hidden mb-4">
+              <DropdownMenu open={isMobileFilterOpen} onOpenChange={setIsMobileFilterOpen}>
+                <DropdownMenuTrigger asChild>
+                  <Button 
+                    variant="outline" 
+                    className="w-full flex items-center justify-center gap-2 bg-white/70 backdrop-blur-sm border-[#B39DDB]/30 hover:bg-[#B39DDB]/10"
+                  >
+                    <FilterIcon size={16} />
+                    Filters
+                    {getActiveFilterCount() > 0 && (
+                      <span className="bg-[#4CAF50] text-white text-xs px-2 py-1 rounded-full ml-1">
+                        {getActiveFilterCount()}
+                      </span>
+                    )}
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent 
+                  align="start" 
+                  className="w-80 max-w-[calc(100vw-2rem)] max-h-[70vh] overflow-y-auto bg-white/70 backdrop-blur-sm rounded-xl border border-[#B39DDB]/50 shadow-md"
+                  sideOffset={4}
+                  collisionPadding={16}
+                  avoidCollisions={true}
+                >
+                  <div className="p-4">
+                    <ResourceFilterSidebar 
+                      selectedFilters={selectedFilters}
+                      onTagClick={handleTagClick}
+                      uniqueBodySystems={uniqueBodySystemsForFilter}
+                      uniqueTags={uniqueTagsForFilter}
+                      filterSettings={filterSettings}
+                      onFilterLogicChange={handleFilterLogicChange}
+                    />
+                  </div>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
+          )}
+
           <div className="bg-white/70 backdrop-blur-sm rounded-xl p-6 shadow-md border border-[#B39DDB]/20">
             {displayResource ? (
               <ResourceDetailView 
@@ -235,7 +301,8 @@ export function ResourcesPageLayout() {
           </div>
         </div>
         
-        <aside className="lg:w-1/4">
+        {/* Desktop Filter Sidebar - Hidden on mobile */}
+        <aside className="hidden lg:block lg:w-1/4">
           <ResourceFilterSidebar 
             selectedFilters={selectedFilters}
             onTagClick={handleTagClick}
