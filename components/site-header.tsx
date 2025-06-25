@@ -126,25 +126,69 @@ export function SiteHeader() {
 
             {authRelatedElements}
 
-            <Button variant="ghost" className="md:hidden">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="24"
-                height="24"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                className="text-[#00796B]"
-              >
-                <line x1="3" y1="12" x2="21" y2="12"></line>
-                <line x1="3" y1="6" x2="21" y2="6"></line>
-                <line x1="3" y1="18" x2="21" y2="18"></line>
-              </svg>
-              <span className="sr-only">Menu</span>
-            </Button>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" className="md:hidden">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="24"
+                    height="24"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    className="text-[#00796B]"
+                  >
+                    <line x1="3" y1="12" x2="21" y2="12"></line>
+                    <line x1="3" y1="6" x2="21" y2="6"></line>
+                    <line x1="3" y1="18" x2="21" y2="18"></line>
+                  </svg>
+                  <span className="sr-only">Menu</span>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent className="w-56 bg-white border-[#B39DDB]/50 rounded-lg shadow-lg" align="end" forceMount>
+                <DropdownMenuItem asChild>
+                  <Link href="/resources" className="text-[#00796B] hover:!bg-[#B39DDB]/20 hover:!text-[#00796B] focus:bg-[#B39DDB]/20 focus:text-[#00796B] rounded-md cursor-pointer">
+                    Resources
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link href="/about" className="text-[#00796B] hover:!bg-[#B39DDB]/20 hover:!text-[#00796B] focus:bg-[#B39DDB]/20 focus:text-[#00796B] rounded-md cursor-pointer">
+                    About
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link href="/contact" className="text-[#00796B] hover:!bg-[#B39DDB]/20 hover:!text-[#00796B] focus:bg-[#B39DDB]/20 focus:text-[#00796B] rounded-md cursor-pointer">
+                    Contact
+                  </Link>
+                </DropdownMenuItem>
+                
+                {/* Mobile Auth Buttons - Only show for non-logged-in users */}
+                {!session && (
+                  <>
+                    <DropdownMenuSeparator className="bg-[#B39DDB]/30" />
+                    <div className="px-2 py-2 space-y-2">
+                      <AppButton
+                        appVariant="secondary"
+                        className="w-full"
+                        onClick={openLoginModal}
+                      >
+                        Log In
+                      </AppButton>
+                      <AppButton
+                        appVariant="primary"
+                        className="w-full"
+                        onClick={openRegisterModal}
+                      >
+                        Sign Up
+                      </AppButton>
+                    </div>
+                  </>
+                )}
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
         </div>
       </header>

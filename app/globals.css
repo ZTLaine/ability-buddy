@@ -71,13 +71,30 @@
 }
 
 .high-contrast a,
-.high-contrast button {
+.high-contrast button,
+.high-contrast input,
+.high-contrast textarea,
+.high-contrast select,
+.high-contrast [role="checkbox"],
+.high-contrast [role="switch"],
+.high-contrast [data-radix-checkbox-root],
+.high-contrast [data-radix-switch-root] {
   outline: 2px solid transparent;
 }
 
 .high-contrast a:focus,
-.high-contrast button:focus {
-  outline: 3px solid #ffff00;
+.high-contrast button:focus,
+.high-contrast input:focus,
+.high-contrast textarea:focus,
+.high-contrast select:focus,
+.high-contrast [role="checkbox"]:focus,
+.high-contrast [role="switch"]:focus,
+.high-contrast [data-radix-checkbox-root]:focus,
+.high-contrast [data-radix-switch-root]:focus,
+.high-contrast button[role="checkbox"]:focus,
+.high-contrast button[role="switch"]:focus,
+.high-contrast .peer:focus {
+  outline: 3px solid var(--highlight);
   outline-offset: 2px;
 }
 
@@ -297,6 +314,74 @@ button {
 
 /* Focus styles */
 *:focus-visible {
+  outline: 2px solid var(--highlight);
+  outline-offset: 2px;
+}
+
+/* Override Radix UI components to use consistent focus styling */
+/* Target all possible checkbox and switch selectors */
+[data-radix-checkbox-root]:focus,
+[data-radix-checkbox-root]:focus-visible,
+[data-radix-switch-root]:focus,
+[data-radix-switch-root]:focus-visible,
+button[role="checkbox"]:focus,
+button[role="checkbox"]:focus-visible,
+button[role="switch"]:focus,
+button[role="switch"]:focus-visible,
+.peer:focus,
+.peer:focus-visible {
+  outline: 2px solid var(--highlight) !important;
+  outline-offset: 2px !important;
+  box-shadow: none !important; /* Remove default Radix ring */
+}
+
+/* Override Tailwind's focus-visible ring utilities specifically */
+.focus-visible\:ring-2:focus-visible,
+.focus-visible\:ring-ring:focus-visible {
+  --tw-ring-color: transparent !important;
+  --tw-ring-opacity: 0 !important;
+  box-shadow: none !important;
+  outline: 2px solid var(--highlight) !important;
+  outline-offset: 2px !important;
+}
+
+/* Prevent focus outline clipping in containers */
+.overflow-y-auto,
+.overflow-hidden,
+[data-radix-dialog-content],
+[data-radix-accordion-content] {
+  /* Ensure focus outlines are not clipped */
+  scroll-padding: 4px;
+}
+
+/* Specific fix for checkbox containers in modals */
+.grid.grid-cols-2 {
+  /* Add padding to prevent outline clipping */
+  padding-left: 4px;
+  padding-right: 4px;
+}
+
+/* Ensure form items don't clip focus outlines */
+[data-radix-checkbox-root],
+[data-radix-switch-root],
+.peer {
+  /* Ensure outline has space */
+  margin: 2px;
+}
+
+/* Additional form control focus styles */
+input:focus,
+input:focus-visible,
+textarea:focus,
+textarea:focus-visible,
+select:focus,
+select:focus-visible,
+[role="checkbox"]:focus,
+[role="checkbox"]:focus-visible,
+[role="switch"]:focus,
+[role="switch"]:focus-visible,
+[role="button"]:focus,
+[role="button"]:focus-visible {
   outline: 2px solid var(--highlight);
   outline-offset: 2px;
 }

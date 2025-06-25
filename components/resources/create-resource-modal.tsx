@@ -376,7 +376,7 @@ export function CreateResourceModal({ children, onResourceCreated, resource, mod
                           <FormDescription>
                             Select the body systems relevant to this resource.
                           </FormDescription>
-                          <div className="grid grid-cols-2 gap-x-4 gap-y-2 pt-2">
+                          <div className="grid grid-cols-2 gap-x-4 gap-y-2 pt-2 px-1">
                             {masterBodySystems.map((system) => (
                               <FormField
                                 key={system}
@@ -385,7 +385,7 @@ export function CreateResourceModal({ children, onResourceCreated, resource, mod
                                 render={({ field }) => {
                                   const currentBodySystems = field.value || [];
                                   return (
-                                    <FormItem className="flex flex-row items-start space-x-3 space-y-0">
+                                    <FormItem className="flex flex-row items-start space-x-3 space-y-0 px-1">
                                       <FormControl>
                                         <Checkbox
                                           checked={currentBodySystems.includes(system)}
