@@ -57,8 +57,10 @@ export function AuthModal({
   const registerForm = useForm<RegisterFormData>({
     resolver: zodResolver(RegisterSchema),
     defaultValues: {
+      name: "",
       email: "",
       password: "",
+      confirmPassword: "",
     },
   });
 
@@ -222,6 +224,24 @@ export function AuthModal({
             >
               <FormField
                 control={registerForm.control}
+                name="name"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-dark-teal">Name (Optional)</FormLabel>
+                    <FormControl>
+                      <Input
+                        placeholder="Your name"
+                        {...field}
+                        disabled={isLoading}
+                        className="rounded-lg"
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={registerForm.control}
                 name="email"
                 render={({ field }) => (
                   <FormItem>
@@ -248,6 +268,25 @@ export function AuthModal({
                       <Input
                         type="password"
                         placeholder="Create a strong password"
+                        {...field}
+                        disabled={isLoading}
+                        className="rounded-lg"
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={registerForm.control}
+                name="confirmPassword"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-dark-teal">Confirm Password</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="password"
+                        placeholder="Confirm your password"
                         {...field}
                         disabled={isLoading}
                         className="rounded-lg"
@@ -289,7 +328,7 @@ export function AuthModal({
           onClick={handleGoogleSignIn}
           disabled={isLoading}
         >
-          {isLoading && view === "login" ? (
+          {isLoading ? (
             <Icons.spinner className="mr-2 h-4 w-4 animate-spin" />
           ) : (
             <Icons.google className="mr-2 h-4 w-4" />

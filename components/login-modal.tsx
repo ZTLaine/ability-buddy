@@ -2,7 +2,7 @@
 
 import type React from "react"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { signIn } from "next-auth/react"
 import { useRouter } from "next/navigation"
 import { z } from "zod"
@@ -13,6 +13,7 @@ import { Checkbox } from "@/components/ui/checkbox"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { AlertCircle } from "lucide-react"
 import { Icons } from "@/components/icons"
+import { LoginSchema, type LoginFormData } from "@/lib/schemas/auth"
 
 interface LoginModalProps {
   isOpen: boolean
@@ -20,14 +21,9 @@ interface LoginModalProps {
   onSwitchToRegister: () => void
 }
 
-const loginSchema = z.object({
-  email: z.string().email("Please enter a valid email address"),
-  password: z.string().min(8, "Password must be at least 8 characters"),
-})
-
 export function LoginModal({ isOpen, onClose, onSwitchToRegister }: LoginModalProps) {
   const router = useRouter()
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<LoginFormData>({
     email: "",
     password: "",
   })
@@ -35,6 +31,7 @@ export function LoginModal({ isOpen, onClose, onSwitchToRegister }: LoginModalPr
   const [rememberMe, setRememberMe] = useState(false)
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [modalHeight, setModalHeight] = useState<string>("auto")
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target
@@ -60,13 +57,13 @@ export function LoginModal({ isOpen, onClose, onSwitchToRegister }: LoginModalPr
 
     try {
       // Validate form data
-      loginSchema.parse(formData)
+      const validatedData = LoginSchema.parse(formData)
 
       // Use NextAuth signIn method for credentials
       const result = await signIn("credentials", {
         redirect: false,
-        email: formData.email,
-        password: formData.password,
+        email: validatedData.email,
+        password: validatedData.password,
       })
 
       if (result?.error) {
@@ -75,6 +72,8 @@ export function LoginModal({ isOpen, onClose, onSwitchToRegister }: LoginModalPr
         onClose()
         router.push("/resources")
         router.refresh()
+      } else {
+        setErrors({ form: "Unexpected error during login. Please try again." })
       }
     } catch (err) {
       if (err instanceof z.ZodError) {
@@ -93,6 +92,34 @@ export function LoginModal({ isOpen, onClose, onSwitchToRegister }: LoginModalPr
     }
   }
 
+  // Dynamic height management for responsive design
+  useEffect(() => {
+    if (isOpen) {
+      // Small delay to allow DOM to update before measuring
+      const timeoutId = setTimeout(() => {
+        const dialogContent = document.querySelector('[data-radix-dialog-content]') as HTMLElement;
+        if (dialogContent) {
+          const currentHeight = dialogContent.scrollHeight;
+          const maxHeight = window.innerHeight * 0.85; // 85% of viewport height
+          setModalHeight(`${Math.min(currentHeight, maxHeight)}px`);
+        }
+      }, 50);
+
+      return () => clearTimeout(timeoutId);
+    }
+  }, [isOpen, errors]);
+
+  // Reset modal state when closed
+  useEffect(() => {
+    if (!isOpen) {
+      setFormData({ email: "", password: "" });
+      setShowPassword(false);
+      setRememberMe(false);
+      setErrors({});
+      setModalHeight("auto");
+    }
+  }, [isOpen]);
+
   const handleGoogleSignIn = async () => {
     setIsSubmitting(true)
     setErrors({})
@@ -108,13 +135,17 @@ export function LoginModal({ isOpen, onClose, onSwitchToRegister }: LoginModalPr
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[425px] bg-white border border-[#B39DDB]/30 shadow-lg rounded-lg">
-        <DialogHeader>
+      <DialogContent 
+        className="sm:max-w-[425px] max-h-[85vh] bg-white border border-[#B39DDB]/30 shadow-lg rounded-lg overflow-hidden flex flex-col z-[100]"
+        style={{ height: modalHeight }}
+      >
+        <DialogHeader className="pb-2 px-6 pt-6 flex-shrink-0">
           <DialogTitle className="text-2xl font-bold text-[#00796B]">Log in to Ability Buddy</DialogTitle>
           <DialogDescription>Access your account to share and manage resources.</DialogDescription>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="space-y-4 py-4">
+        <div className="overflow-y-auto flex-1 px-6 py-2 scrollbar-thin scrollbar-thumb-[#B39DDB]/30 scrollbar-track-transparent">
+          <form onSubmit={handleSubmit} className="space-y-4">
           {errors.form && (
             <div className="bg-red-50 p-3 rounded-lg flex items-start gap-2 text-red-700 text-sm">
               <AlertCircle className="h-5 w-5 mt-0.5 flex-shrink-0" />
@@ -233,13 +264,14 @@ export function LoginModal({ isOpen, onClose, onSwitchToRegister }: LoginModalPr
             Sign in with Google
           </Button>
 
-          <div className="text-center text-sm text-gray-600">
-            Don&apos;t have an account?{" "}
-            <Button type="button" variant="link" className="text-[#4CAF50] p-0 h-auto" onClick={onSwitchToRegister}>
-              Sign up
-            </Button>
-          </div>
-        </form>
+            <div className="text-center text-sm text-gray-600">
+              Don&apos;t have an account?{" "}
+              <Button type="button" variant="link" className="text-[#4CAF50] p-0 h-auto" onClick={onSwitchToRegister}>
+                Sign up
+              </Button>
+            </div>
+          </form>
+        </div>
       </DialogContent>
     </Dialog>
   )
