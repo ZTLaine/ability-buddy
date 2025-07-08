@@ -14,6 +14,8 @@ import { Icons } from "@/components/icons"
 import { RegisterSchema, type RegisterFormData } from "@/lib/schemas/auth"
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { useModalHeight } from "@/hooks/use-modal-height"
+import { createModalConfig, modalTitleStyles, modalDescriptionStyles } from "@/lib/modal-config"
 
 interface RegisterModalProps {
   isOpen: boolean
@@ -36,8 +38,9 @@ export function RegisterModal({ isOpen, onClose, onSwitchToLogin }: RegisterModa
 
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
-  const [modalHeight, setModalHeight] = useState<string>("auto")
   const [formErrors, setFormErrors] = useState<Record<string, string>>({})
+  
+  const modalHeight = useModalHeight({ isOpen, dependencies: [formErrors] })
 
   const onSubmit = async (data: RegisterFormData) => {
     setFormErrors({}); // Clear previous errors
@@ -84,29 +87,11 @@ export function RegisterModal({ isOpen, onClose, onSwitchToLogin }: RegisterModa
     }
   };
 
-  // Dynamic height management for responsive design
-  useEffect(() => {
-    if (isOpen) {
-      // Small delay to allow DOM to update before measuring
-      const timeoutId = setTimeout(() => {
-        const dialogContent = document.querySelector('[data-radix-dialog-content]') as HTMLElement;
-        if (dialogContent) {
-          const currentHeight = dialogContent.scrollHeight;
-          const maxHeight = window.innerHeight * 0.85; // 85% of viewport height
-          setModalHeight(`${Math.min(currentHeight, maxHeight)}px`);
-        }
-      }, 50);
-
-      return () => clearTimeout(timeoutId);
-    }
-  }, [isOpen, formErrors]);
-
   // Reset modal state when closed
   useEffect(() => {
     if (!isOpen) {
       setShowPassword(false);
       setShowConfirmPassword(false);
-      setModalHeight("auto");
       setFormErrors({});
     }
   }, [isOpen]);
@@ -119,18 +104,20 @@ export function RegisterModal({ isOpen, onClose, onSwitchToLogin }: RegisterModa
     }
   }
 
+  const modalConfig = createModalConfig(modalHeight);
+
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent 
-        className="sm:max-w-[425px] max-h-[85vh] bg-white border border-[#B39DDB]/30 shadow-lg rounded-lg overflow-hidden flex flex-col z-[100]"
-        style={{ height: modalHeight }}
+        className={modalConfig.content.className}
+        style={modalConfig.content.style}
       >
-        <DialogHeader className="pb-2 px-6 pt-6 flex-shrink-0">
-          <DialogTitle className="text-2xl font-bold text-[#00796B]">Create an account</DialogTitle>
-          <DialogDescription>Join Ability Buddy to share resources and help others.</DialogDescription>
+        <DialogHeader className={modalConfig.header.className}>
+          <DialogTitle className={modalTitleStyles.default}>Create an account</DialogTitle>
+          <DialogDescription className={modalDescriptionStyles}>Join Ability Buddy to share resources and help others.</DialogDescription>
         </DialogHeader>
 
-        <div className="overflow-y-auto flex-1 px-6 py-2 scrollbar-thin scrollbar-thumb-[#B39DDB]/30 scrollbar-track-transparent">
+        <div className={modalConfig.body.className}>
           <form onSubmit={handleFormSubmit(onSubmit)} className="space-y-4">
             {formErrors.form && (
               <div className="bg-red-50 p-3 rounded-lg flex items-start gap-2 text-red-700 text-sm">
@@ -199,6 +186,11 @@ export function RegisterModal({ isOpen, onClose, onSwitchToLogin }: RegisterModa
             {errors.password && (
               <p className="text-red-500 text-sm mt-1">
                 {errors.password.message}
+              </p>
+            )}
+            {!errors.password && (
+              <p className="text-xs text-gray-500 mt-1">
+                Password must be at least 8 characters with a number and symbol
               </p>
             )}
           </div>

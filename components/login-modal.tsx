@@ -14,6 +14,9 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { AlertCircle } from "lucide-react"
 import { Icons } from "@/components/icons"
 import { LoginSchema, type LoginFormData } from "@/lib/schemas/auth"
+import { ForgotPasswordModal } from "@/components/forgot-password-modal"
+import { useModalHeight } from "@/hooks/use-modal-height"
+import { createModalConfig, modalTitleStyles, modalDescriptionStyles } from "@/lib/modal-config"
 
 interface LoginModalProps {
   isOpen: boolean
@@ -31,7 +34,9 @@ export function LoginModal({ isOpen, onClose, onSwitchToRegister }: LoginModalPr
   const [rememberMe, setRememberMe] = useState(false)
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [isSubmitting, setIsSubmitting] = useState(false)
-  const [modalHeight, setModalHeight] = useState<string>("auto")
+  const [showForgotPassword, setShowForgotPassword] = useState(false)
+  
+  const modalHeight = useModalHeight({ isOpen, dependencies: [errors] })
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target
@@ -92,23 +97,6 @@ export function LoginModal({ isOpen, onClose, onSwitchToRegister }: LoginModalPr
     }
   }
 
-  // Dynamic height management for responsive design
-  useEffect(() => {
-    if (isOpen) {
-      // Small delay to allow DOM to update before measuring
-      const timeoutId = setTimeout(() => {
-        const dialogContent = document.querySelector('[data-radix-dialog-content]') as HTMLElement;
-        if (dialogContent) {
-          const currentHeight = dialogContent.scrollHeight;
-          const maxHeight = window.innerHeight * 0.85; // 85% of viewport height
-          setModalHeight(`${Math.min(currentHeight, maxHeight)}px`);
-        }
-      }, 50);
-
-      return () => clearTimeout(timeoutId);
-    }
-  }, [isOpen, errors]);
-
   // Reset modal state when closed
   useEffect(() => {
     if (!isOpen) {
@@ -116,7 +104,7 @@ export function LoginModal({ isOpen, onClose, onSwitchToRegister }: LoginModalPr
       setShowPassword(false);
       setRememberMe(false);
       setErrors({});
-      setModalHeight("auto");
+      setShowForgotPassword(false);
     }
   }, [isOpen]);
 
@@ -133,18 +121,20 @@ export function LoginModal({ isOpen, onClose, onSwitchToRegister }: LoginModalPr
     }
   }
 
+  const modalConfig = createModalConfig(modalHeight);
+
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent 
-        className="sm:max-w-[425px] max-h-[85vh] bg-white border border-[#B39DDB]/30 shadow-lg rounded-lg overflow-hidden flex flex-col z-[100]"
-        style={{ height: modalHeight }}
+        className={modalConfig.content.className}
+        style={modalConfig.content.style}
       >
-        <DialogHeader className="pb-2 px-6 pt-6 flex-shrink-0">
-          <DialogTitle className="text-2xl font-bold text-[#00796B]">Log in to Ability Buddy</DialogTitle>
-          <DialogDescription>Access your account to share and manage resources.</DialogDescription>
+        <DialogHeader className={modalConfig.header.className}>
+          <DialogTitle className={modalTitleStyles.default}>Log in to Ability Buddy</DialogTitle>
+          <DialogDescription className={modalDescriptionStyles}>Access your account to share and manage resources.</DialogDescription>
         </DialogHeader>
 
-        <div className="overflow-y-auto flex-1 px-6 py-2 scrollbar-thin scrollbar-thumb-[#B39DDB]/30 scrollbar-track-transparent">
+        <div className={modalConfig.body.className}>
           <form onSubmit={handleSubmit} className="space-y-4">
           {errors.form && (
             <div className="bg-red-50 p-3 rounded-lg flex items-start gap-2 text-red-700 text-sm">
@@ -184,7 +174,7 @@ export function LoginModal({ isOpen, onClose, onSwitchToRegister }: LoginModalPr
                 type="button"
                 variant="link"
                 className="text-[#4CAF50] p-0 h-auto text-sm"
-                onClick={() => console.log("Forgot password")}
+                onClick={() => setShowForgotPassword(true)}
               >
                 Forgot password?
               </Button>
@@ -273,6 +263,12 @@ export function LoginModal({ isOpen, onClose, onSwitchToRegister }: LoginModalPr
           </form>
         </div>
       </DialogContent>
+
+      <ForgotPasswordModal
+        isOpen={showForgotPassword}
+        onClose={() => setShowForgotPassword(false)}
+        onBackToLogin={() => setShowForgotPassword(false)}
+      />
     </Dialog>
   )
 }
