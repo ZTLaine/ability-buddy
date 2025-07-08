@@ -13,6 +13,9 @@ import { Icons } from "@/components/icons"
 import { useModalHeight } from "@/hooks/use-modal-height"
 import { createModalConfig, modalTitleStyles, modalDescriptionStyles } from "@/lib/modal-config"
 
+// Extract icon component with proper PascalCase name
+const { spinner: SpinnerIcon } = Icons
+
 const forgotPasswordSchema = z.object({
   email: z.string().email('Please enter a valid email address'),
 })
@@ -20,12 +23,12 @@ const forgotPasswordSchema = z.object({
 type ForgotPasswordFormData = z.infer<typeof forgotPasswordSchema>
 
 interface ForgotPasswordModalProps {
-  isOpen: boolean
-  onClose: () => void
-  onBackToLogin: () => void
+  readonly isOpen: boolean
+  readonly onClose: () => void
+  readonly onBackToLogin: () => void
 }
 
-export function ForgotPasswordModal({ isOpen, onClose, onBackToLogin }: ForgotPasswordModalProps) {
+export function ForgotPasswordModal({ isOpen, onClose, onBackToLogin }: Readonly<ForgotPasswordModalProps>) {
   const [formData, setFormData] = useState<ForgotPasswordFormData>({
     email: "",
   })
@@ -70,7 +73,7 @@ export function ForgotPasswordModal({ isOpen, onClose, onBackToLogin }: ForgotPa
       const result = await response.json()
 
       if (!response.ok) {
-        setErrors({ form: result.message || "Failed to send reset email. Please try again." })
+        setErrors({ form: result.message ?? "Failed to send reset email. Please try again." })
       } else {
         setIsSuccess(true)
       }
@@ -212,7 +215,7 @@ export function ForgotPasswordModal({ isOpen, onClose, onBackToLogin }: ForgotPa
               >
                 {isSubmitting ? (
                   <>
-                    <Icons.spinner className="animate-spin mr-2 h-4 w-4" />
+                    <SpinnerIcon className="animate-spin mr-2 h-4 w-4" />
                     Sending reset link...
                   </>
                 ) : (

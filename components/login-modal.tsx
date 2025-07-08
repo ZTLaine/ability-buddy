@@ -18,13 +18,16 @@ import { ForgotPasswordModal } from "@/components/forgot-password-modal"
 import { useModalHeight } from "@/hooks/use-modal-height"
 import { createModalConfig, modalTitleStyles, modalDescriptionStyles } from "@/lib/modal-config"
 
+// Extract icon components with proper PascalCase names
+const { eye: EyeIcon, eyeOff: EyeOffIcon, spinner: SpinnerIcon, google: GoogleIcon } = Icons
+
 interface LoginModalProps {
-  isOpen: boolean
-  onClose: () => void
-  onSwitchToRegister: () => void
+  readonly isOpen: boolean
+  readonly onClose: () => void
+  readonly onSwitchToRegister: () => void
 }
 
-export function LoginModal({ isOpen, onClose, onSwitchToRegister }: LoginModalProps) {
+export function LoginModal({ isOpen, onClose, onSwitchToRegister }: Readonly<LoginModalProps>) {
   const router = useRouter()
   const [formData, setFormData] = useState<LoginFormData>({
     email: "",
@@ -198,7 +201,7 @@ export function LoginModal({ isOpen, onClose, onSwitchToRegister }: LoginModalPr
                 onClick={() => setShowPassword(!showPassword)}
                 aria-label={showPassword ? "Hide password" : "Show password"}
               >
-                {showPassword ? <Icons.eyeOff className="h-4 w-4" /> : <Icons.eye className="h-4 w-4" />}
+                {showPassword ? <EyeOffIcon className="h-4 w-4" /> : <EyeIcon className="h-4 w-4" />}
               </Button>
             </div>
             {errors.password && (
@@ -247,9 +250,9 @@ export function LoginModal({ isOpen, onClose, onSwitchToRegister }: LoginModalPr
             disabled={isSubmitting}
           >
             {isSubmitting ? (
-              <Icons.spinner className="mr-2 h-4 w-4 animate-spin" />
+              <SpinnerIcon className="mr-2 h-4 w-4 animate-spin" />
             ) : (
-              <Icons.google className="mr-2 h-4 w-4" />
+              <GoogleIcon className="mr-2 h-4 w-4" />
             )}
             Sign in with Google
           </Button>

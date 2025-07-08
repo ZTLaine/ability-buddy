@@ -17,15 +17,18 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useModalHeight } from "@/hooks/use-modal-height"
 import { createModalConfig, modalTitleStyles, modalDescriptionStyles } from "@/lib/modal-config"
 
+// Extract icon components with proper PascalCase names
+const { eye: EyeIcon, eyeOff: EyeOffIcon, spinner: SpinnerIcon, google: GoogleIcon } = Icons
+
 interface RegisterModalProps {
-  isOpen: boolean
-  onClose: () => void
-  onSwitchToLogin: () => void
+  readonly isOpen: boolean
+  readonly onClose: () => void
+  readonly onSwitchToLogin: () => void
 }
 
-export function RegisterModal({ isOpen, onClose, onSwitchToLogin }: RegisterModalProps) {
+export function RegisterModal({ isOpen, onClose, onSwitchToLogin }: Readonly<RegisterModalProps>) {
   const router = useRouter()
-  const { register, handleSubmit: handleFormSubmit, formState: { errors, touchedFields, isSubmitting }, control, setValue, trigger } = useForm<RegisterFormData>({
+  const { register, handleSubmit: handleFormSubmit, formState: { errors, isSubmitting } } = useForm<RegisterFormData>({
     resolver: zodResolver(RegisterSchema),
     mode: "onBlur",
     defaultValues: {
@@ -64,7 +67,7 @@ export function RegisterModal({ isOpen, onClose, onSwitchToLogin }: RegisterModa
         if (response.status === 409) {
           setFormErrors({ form: "An account with this email already exists. Please use a different email or try logging in instead." });
         } else {
-          setFormErrors({ form: result.message || "Failed to register. Please try again." });
+          setFormErrors({ form: result.message ?? "Failed to register. Please try again." });
         }
       } else {
         const signInResult = await signIn("credentials", {
@@ -78,7 +81,7 @@ export function RegisterModal({ isOpen, onClose, onSwitchToLogin }: RegisterModa
           router.push("/resources");
           router.refresh();
         } else {
-          setFormErrors({ form: signInResult?.error || "Registration successful, but failed to sign in automatically. Please try logging in manually." });
+          setFormErrors({ form: signInResult?.error ?? "Registration successful, but failed to sign in automatically. Please try logging in manually." });
         }
       }
     } catch (err) {
@@ -180,7 +183,7 @@ export function RegisterModal({ isOpen, onClose, onSwitchToLogin }: RegisterModa
                 onClick={() => setShowPassword(!showPassword)}
                 aria-label={showPassword ? "Hide password" : "Show password"}
               >
-                {showPassword ? <Icons.eyeOff className="h-4 w-4" /> : <Icons.eye className="h-4 w-4" />}
+                {showPassword ? <EyeOffIcon className="h-4 w-4" /> : <EyeIcon className="h-4 w-4" />}
               </Button>
             </div>
             {errors.password && (
@@ -214,7 +217,7 @@ export function RegisterModal({ isOpen, onClose, onSwitchToLogin }: RegisterModa
                 onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                 aria-label={showConfirmPassword ? "Hide confirm password" : "Show confirm password"}
               >
-                {showConfirmPassword ? <Icons.eyeOff className="h-4 w-4" /> : <Icons.eye className="h-4 w-4" />}
+                {showConfirmPassword ? <EyeOffIcon className="h-4 w-4" /> : <EyeIcon className="h-4 w-4" />}
               </Button>
             </div>
             {errors.confirmPassword && (
@@ -229,7 +232,7 @@ export function RegisterModal({ isOpen, onClose, onSwitchToLogin }: RegisterModa
             className="w-full bg-[#4CAF50] hover:bg-[#4CAF50]/90 text-white rounded-lg"
             disabled={isSubmitting}
           >
-            {isSubmitting ? <Icons.spinner className="animate-spin mr-2 h-4 w-4"/> : "Create account"}
+            {isSubmitting ? <SpinnerIcon className="animate-spin mr-2 h-4 w-4"/> : "Create account"}
           </Button>
 
           <div className="relative my-4">
@@ -251,9 +254,9 @@ export function RegisterModal({ isOpen, onClose, onSwitchToLogin }: RegisterModa
             disabled={isSubmitting}
           >
             {isSubmitting ? (
-              <Icons.spinner className="mr-2 h-4 w-4 animate-spin" />
+              <SpinnerIcon className="mr-2 h-4 w-4 animate-spin" />
             ) : (
-              <Icons.google className="mr-2 h-4 w-4" />
+              <GoogleIcon className="mr-2 h-4 w-4" />
             )}
             Sign up with Google
           </Button>

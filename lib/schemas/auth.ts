@@ -10,7 +10,7 @@ export type LoginFormData = z.infer<typeof LoginSchema>;
 // Strong password validation function
 const strongPasswordSchema = z.string()
   .min(8, { message: 'Password must be at least 8 characters long.' })
-  .regex(/[0-9]/, { message: 'Password must contain at least one number.' })
+  .regex(/\d/, { message: 'Password must contain at least one number.' })
   .regex(/[!@#$%^&*(),.?":{}|<>]/, { message: 'Password must contain at least one symbol (!@#$%^&*(),.?":{}|<>).' });
 
 export const RegisterSchema = z.object({
