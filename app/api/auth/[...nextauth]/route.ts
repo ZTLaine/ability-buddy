@@ -65,14 +65,17 @@ export const authOptions: NextAuthOptions = {
                 }
 
                 console.log('Authentication successful for:', credentials.email);
-                // Return user object without password
-                return {
+                
+                const userObject = {
                     id: user.id,
                     email: user.email,
                     name: user.name, 
                     image: user.image, 
                     role: user.role,
                 };
+                
+                console.log('Returning user object from credentials provider:', userObject);
+                return userObject;
             } catch (error) {
                 console.error('Database error during authentication:', error?.message || 'Unknown database error');
                 return null;
@@ -84,29 +87,49 @@ export const authOptions: NextAuthOptions = {
         strategy: FORCE_JWT_SESSIONS ? "jwt" : (isProduction ? "database" : "jwt"),
     },
     callbacks: {
+        async signIn({ user, account, profile }) {
+            // This ensures custom fields like 'role' are properly handled
+            // especially important for credentials provider with database sessions
+            return true;
+        },
         // Handle both session types
         async session({ session, token, user }) {
-            console.log('Session callback:', {
-                strategy: FORCE_JWT_SESSIONS ? 'jwt' : (isProduction ? 'database' : 'jwt'),
-                hasUser: !!user,
-                hasToken: !!token,
-                userId: user?.id || token?.sub
-            });
+            try {
+                console.log('Session callback:', {
+                    strategy: FORCE_JWT_SESSIONS ? 'jwt' : (isProduction ? 'database' : 'jwt'),
+                    hasUser: !!user,
+                    hasToken: !!token,
+                    userId: user?.id || token?.sub,
+                    userRole: user?.role || token?.role,
+                    sessionUserEmail: session?.user?.email,
+                    fullUser: user ? { id: user.id, email: user.email, role: (user as any).role } : null
+                });
 
-            if (FORCE_JWT_SESSIONS || !isProduction) {
-                // JWT sessions - token is available
-                if (token?.sub && session.user) {
-                    session.user.id = token.sub;
-                    session.user.role = token.role as any;
+                if (FORCE_JWT_SESSIONS || !isProduction) {
+                    // JWT sessions - token is available
+                    if (token?.sub && session.user) {
+                        session.user.id = token.sub;
+                        session.user.role = token.role as any;
+                    }
+                } else {
+                    // Database sessions - user is available
+                    if (user && session.user) {
+                        session.user.id = user.id;
+                        session.user.role = (user as any).role;
+                    }
                 }
-            } else {
-                // Database sessions - user is available
-                if (user && session.user) {
-                    session.user.id = user.id;
-                    session.user.role = (user as any).role;
-                }
+                
+                console.log('Session callback completed successfully:', {
+                    hasSessionUser: !!session?.user,
+                    sessionUserId: session?.user?.id,
+                    sessionUserRole: (session?.user as any)?.role
+                });
+                
+                return session;
+            } catch (error) {
+                console.error('Error in session callback:', error);
+                return session;
             }
-            return session;
         },
         async jwt({ token, user }) {
             console.log('JWT callback:', {
