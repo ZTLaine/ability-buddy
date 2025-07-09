@@ -74,7 +74,7 @@ export const authOptions: NextAuthOptions = {
                     role: user.role,
                 };
             } catch (error) {
-                console.error('Database error during authentication:', error);
+                console.error('Database error during authentication:', error?.message || 'Unknown database error');
                 return null;
             }
         },

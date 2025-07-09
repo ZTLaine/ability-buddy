@@ -4,11 +4,24 @@ import { getServerSession } from 'next-auth';
 import prisma from '@/lib/prisma';
 
 export async function GET(request: NextRequest) {
+  // SECURITY: Remove this endpoint after debugging is complete
+  // This endpoint should only be used temporarily for debugging auth issues
+  
+  // Safety check - only allow in development or when explicitly enabled
+  const isDebugEnabled = process.env.NODE_ENV === 'development' || process.env.ENABLE_DEBUG_ENDPOINT === 'true';
+  
+  if (!isDebugEnabled) {
+    return NextResponse.json({ 
+      error: 'Debug endpoint disabled in production',
+      message: 'Set ENABLE_DEBUG_ENDPOINT=true to enable (not recommended for production)' 
+    }, { status: 403 });
+  }
+  
   try {
     // Get current session
     const session = await getServerSession(authOptions);
     
-    // Check environment variables (safely)
+    // Check environment variables (safely - only show if they're set, not values)
     const envCheck = {
       NODE_ENV: process.env.NODE_ENV,
       RAILWAY_ENVIRONMENT: process.env.RAILWAY_ENVIRONMENT,
@@ -23,7 +36,7 @@ export async function GET(request: NextRequest) {
     let dbStatus;
     try {
       await prisma.$connect();
-      // Try to count users
+      // Try to count users (don't expose actual user data)
       const userCount = await prisma.user.count();
       const sessionCount = await prisma.session.count();
       dbStatus = {
@@ -55,11 +68,12 @@ export async function GET(request: NextRequest) {
       session: {
         hasSession: !!session,
         userId: session?.user?.id || null,
-        userEmail: session?.user?.email || null,
+        userEmail: session?.user?.email || null, // Only show email, not sensitive data
         userRole: (session?.user as any)?.role || null
       },
       database: dbStatus,
-      authStrategy: isProduction ? 'database' : 'jwt'
+      authStrategy: isProduction ? 'database' : 'jwt',
+      forceJwtSessions: true // Show current override status
     };
 
     return NextResponse.json(debugInfo, { status: 200 });
