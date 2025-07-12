@@ -8,15 +8,21 @@ import bcrypt from "bcryptjs";
 // Determine if we're in production
 const isProduction = process.env.NODE_ENV === 'production' || process.env.RAILWAY_ENVIRONMENT === 'production';
 
+// TEMPORARY: Force JWT sessions for both environments to test
+const FORCE_JWT_SESSIONS = true;
+
 console.log('NextAuth Environment Check:', {
   NODE_ENV: process.env.NODE_ENV,
   RAILWAY_ENVIRONMENT: process.env.RAILWAY_ENVIRONMENT,
   isProduction,
-  sessionStrategy: isProduction ? 'database' : 'jwt'
+  sessionStrategy: FORCE_JWT_SESSIONS ? 'jwt' : (isProduction ? 'database' : 'jwt'),
+  NEXTAUTH_URL: process.env.NEXTAUTH_URL,
+  NEXTAUTH_SECRET: process.env.NEXTAUTH_SECRET ? 'SET' : 'NOT SET',
+  DATABASE_URL: process.env.DATABASE_URL ? 'SET' : 'NOT SET'
 });
 
 export const authOptions: NextAuthOptions = {
-    adapter: PrismaAdapter(prisma),
+    adapter: FORCE_JWT_SESSIONS ? undefined : PrismaAdapter(prisma),
     providers: [
         GoogleProvider({
         clientId: process.env.GOOGLE_CLIENT_ID!,
@@ -31,70 +37,120 @@ export const authOptions: NextAuthOptions = {
         },
         async authorize(credentials, req) {
             if (!credentials?.email || !credentials.password) {
+                console.log('Missing credentials:', { email: !!credentials?.email, password: !!credentials?.password });
                 return null;
             }
 
-            const user = await prisma.user.findUnique({
-                where: { email: credentials.email },
-            });
+            try {
+                const user = await prisma.user.findUnique({
+                    where: { email: credentials.email },
+                });
 
-            if (!user || !user.hashedPassword) {
-                // User not found or doesn't have a password (e.g., signed up with OAuth)
+                if (!user || !user.hashedPassword) {
+                    console.log('User not found or no password:', { 
+                        userExists: !!user, 
+                        hasPassword: !!user?.hashedPassword 
+                    });
+                    return null;
+                }
+
+                const isValidPassword = await bcrypt.compare(
+                    credentials.password,
+                    user.hashedPassword
+                );
+
+                if (!isValidPassword) {
+                    console.log('Invalid password for user:', credentials.email);
+                    return null;
+                }
+
+                console.log('Authentication successful for:', credentials.email);
+                
+                const userObject = {
+                    id: user.id,
+                    email: user.email,
+                    name: user.name, 
+                    image: user.image, 
+                    role: user.role,
+                };
+                
+                console.log('Returning user object from credentials provider:', userObject);
+                return userObject;
+            } catch (error) {
+                console.error('Database error during authentication:', error?.message || 'Unknown database error');
                 return null;
             }
-
-            const isValidPassword = await bcrypt.compare(
-                credentials.password,
-                user.hashedPassword
-            );
-
-            if (!isValidPassword) {
-                return null;
-            }
-
-            // Return user object without password
-            return {
-                id: user.id,
-                email: user.email,
-                name: user.name, 
-                image: user.image, 
-                role: user.role,
-            };
         },
     }),
     ],
     session: {
-        strategy: isProduction ? "database" : "jwt", // Use database sessions in production, JWT locally
+        strategy: FORCE_JWT_SESSIONS ? "jwt" : (isProduction ? "database" : "jwt"),
     },
     callbacks: {
+        async signIn({ user, account, profile }) {
+            // This ensures custom fields like 'role' are properly handled
+            // especially important for credentials provider with database sessions
+            return true;
+        },
         // Handle both session types
         async session({ session, token, user }) {
-            if (isProduction) {
-                // Database sessions - user is available
-                if (user && session.user) {
-                    session.user.id = user.id;
-                    session.user.role = (user as any).role;
+            try {
+                console.log('Session callback:', {
+                    strategy: FORCE_JWT_SESSIONS ? 'jwt' : (isProduction ? 'database' : 'jwt'),
+                    hasUser: !!user,
+                    hasToken: !!token,
+                    userId: user?.id || token?.sub,
+                    userRole: user?.role || token?.role,
+                    sessionUserEmail: session?.user?.email,
+                    fullUser: user ? { id: user.id, email: user.email, role: (user as any).role } : null
+                });
+
+                if (FORCE_JWT_SESSIONS || !isProduction) {
+                    // JWT sessions - token is available
+                    if (token?.sub && session.user) {
+                        session.user.id = token.sub;
+                        session.user.role = token.role as any;
+                    }
+                } else {
+                    // Database sessions - user is available
+                    if (user && session.user) {
+                        session.user.id = user.id;
+                        session.user.role = (user as any).role;
+                    }
                 }
-            } else {
-                // JWT sessions - token is available
-                if (token?.sub && session.user) {
-                    session.user.id = token.sub;
-                    session.user.role = token.role as any;
-                }
+                
+                console.log('Session callback completed successfully:', {
+                    hasSessionUser: !!session?.user,
+                    sessionUserId: session?.user?.id,
+                    sessionUserRole: (session?.user as any)?.role
+                });
+                
+                return session;
+            } catch (error) {
+                console.error('Error in session callback:', error);
+                return session;
             }
-            return session;
         },
         async jwt({ token, user }) {
-            // Only needed for JWT sessions (local development)
-            if (!isProduction && user) {
-                token.sub = user.id;
-                token.role = user.role;
+            console.log('JWT callback:', {
+                strategy: FORCE_JWT_SESSIONS ? 'jwt' : (isProduction ? 'database' : 'jwt'),
+                hasUser: !!user,
+                hasToken: !!token,
+                userId: user?.id
+            });
+
+            // Only needed for JWT sessions
+            if (FORCE_JWT_SESSIONS || !isProduction) {
+                if (user) {
+                    token.sub = user.id;
+                    token.role = user.role;
+                }
             }
             return token;
         },
     },
     secret: process.env.NEXTAUTH_SECRET,
-    // debug: process.env.NODE_ENV === 'development', // Enable debug messages in development
+    debug: true, // Enable debug mode
 };
 
 const handler = NextAuth(authOptions);
